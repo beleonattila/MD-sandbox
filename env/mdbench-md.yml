@@ -1,0 +1,28 @@
+# L1–L3 environment. Pins follow CLAUDE.md; do not upgrade mid-benchmark.
+# OpenMM 8.4 / PLUMED 2.9: newest openmm-plumed (2.1) does not support 8.5 / 2.10 (checked 2026-10-10).
+# No torch here: it drags in a second CUDA runtime and breaks the solve.
+name: mdbench-md
+channels:
+  - conda-forge
+dependencies:
+  - python=3.12
+  - openmm=8.4
+  - cuda-version=13.2           # must not exceed the driver's CUDA (nvidia-smi: 13.2, driver 595.99)
+  - openmm-plumed=2.1
+  - plumed=2.9
+  - ambertools
+  - openff-toolkit
+  - openff-forcefields          # provides Sage 2.3.0 (openff-2.3.0.offxml)
+  - mdanalysis
+  - pdbfixer
+  - deeptime                    # MSM estimation, implied timescales, CK test
+  - pymbar=4                    # umbrella sampling / MBAR
+  - numpy
+  - scipy
+  - pandas
+  - pyarrow
+  - pyyaml
+  - matplotlib
+  - pytest
+  - ruff
+  - make

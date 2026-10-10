@@ -62,6 +62,11 @@ Every run writes its resolved config next to its output.
 
 ## Version pins
 
-Set in `env/*.yml`, verified 2026-09: OpenMM 8.5.2 · openmm-plumed 2.1 · PLUMED 2.10.x
-· openmm-ml 1.5 · OpenFE 1.12 · OpenFF Sage 2.3.0 · MACE-OFF24(M). Do not upgrade
-mid-benchmark — a version change invalidates comparisons. Record `code_version` per row.
+Set in `env/*.yml`, `mdbench-md` solved 2026-10-10: OpenMM 8.4 · openmm-plumed 2.1 · PLUMED 2.9
+· cuda-version 13.2 · openmm-ml 1.5 · OpenFE 1.12 · OpenFF Sage 2.3.0 · MACE-OFF24(M). Do not
+upgrade mid-benchmark — a version change invalidates comparisons. Record `code_version` per row.
+
+OpenMM is 8.4, not 8.5.x, because openmm-plumed 2.1 (newest) is only built for OpenMM 8.4 /
+PLUMED 2.9. `cuda-version` must not exceed the driver's CUDA (`nvidia-smi`, currently 13.2):
+a newer NVRTC fails with `CUDA_ERROR_UNSUPPORTED_PTX_VERSION`. The `mdbench-fe` and
+`mdbench-ml` pins are not yet solved. Exact builds are in `env/mdbench-md.lock.txt`.
