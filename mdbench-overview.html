@@ -108,12 +108,38 @@ table.sys{border-collapse:collapse;min-width:640px;width:100%;font-family:var(--
 .rules li{border-top:1px solid var(--rule);padding-top:10px}
 .rules b{font-family:var(--sans);font-weight:600}
 footer{font-family:var(--sans);font-size:.8rem;color:var(--ink3);border-top:1px solid var(--rule);padding-top:14px}
+
+/* branch C progress */
+.prog{border-top:3px solid var(--C);padding-top:18px}
+.status{display:grid;grid-template-columns:150px repeat(5,minmax(0,1fr));gap:6px;font-family:var(--sans);font-size:.82rem;min-width:620px}
+.status .h{color:var(--ink3);font-family:var(--mono);font-size:.9rem;color:var(--ink);padding:2px 8px}
+.status .sysn{font-weight:600;padding:8px 4px;align-self:center}
+.status .sysn small{display:block;font-weight:400;color:var(--ink3)}
+.st{border-radius:4px;padding:8px 10px;border:1px solid var(--rule);background:var(--panel);display:flex;flex-direction:column;gap:2px;line-height:1.3}
+.st b{font-weight:600}
+.st span{color:var(--ink2);font-size:.76rem}
+.st.ran{background:var(--Ctint);border-color:var(--C)}
+.st.cfg{border-style:dashed;border-color:var(--rule2)}
+.st.def{background:transparent;color:var(--ink3)}
+.st.def b{font-weight:500}
+.chip{display:inline-block;font-family:var(--sans);font-size:.68rem;letter-spacing:.06em;text-transform:uppercase;font-weight:700;padding:1px 6px;border-radius:999px;border:1.5px solid currentColor;margin-left:6px;vertical-align:1px}
+.warn{color:var(--D)}
+.forest{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,460px),1fr));gap:16px}
+.forest figure{margin:0;background:var(--panel);border:1px solid var(--rule);border-radius:6px;padding:14px 12px 8px;display:flex;flex-direction:column;gap:6px}
+.forest figcaption{font-family:var(--sans);font-size:.9rem;font-weight:600;padding:0 4px}
+.forest figcaption span{font-weight:400;color:var(--ink3)}
+.forest svg{display:block;width:100%;height:auto}
+.forest text{font-family:var(--sans);fill:var(--ink2)}
+.findings{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,300px),1fr));gap:12px 28px;margin:0;padding:0;list-style:none;font-size:.95rem}
+.findings li{border-top:1px solid var(--rule);padding-top:10px}
+.findings b{font-family:var(--sans);font-weight:600}
+.findings li.flag b{color:var(--D)}
 </style>
 
 <div class="wrap">
 
 <header class="intro">
-  <span class="eyebrow">Project overview · planning stage</span>
+  <span class="eyebrow">Project overview · branch C in progress</span>
   <h1>mdbench</h1>
   <p class="lede">A method-ladder benchmark for molecular simulation. Four scientific questions, each answered at five levels of rigour, on systems with published experimental data, all on one 6&nbsp;GB laptop GPU.</p>
   <p>Nothing here predicts anything new. Each calculation is scored against measured values (ITC binding data, crystal endpoints, smFRET distributions, mutant kcat series), and its wall-clock cost is recorded beside the score. Plotting accuracy against log cost for each branch shows where extra rigour stops paying.</p>
@@ -160,10 +186,53 @@ footer{font-family:var(--sans);font-size:.8rem;color:var(--ink3);border-top:1px 
   </div>
 </section>
 
+<section class="prog">
+  <span class="eyebrow">Progress · 10 October 2026</span>
+  <h2>Branch C: alanine dipeptide through L3, adenylate kinase prepared</h2>
+  <p>42 rows are in <span class="mono">results/c.parquet</span>. Every reference column is still empty because no published value has been verified yet, so for now the checks are agreement between levels and methods, not accuracy against experiment.</p>
+  <div class="scroll">
+    <div class="status" role="table" aria-label="Branch C status by system and level">
+      <div></div><div class="h">L0</div><div class="h">L1</div><div class="h">L2</div><div class="h">L3</div><div class="h">L4</div>
+      <div class="sysn">Alanine dipeptide<small>1,843 atoms, TIP3P</small></div>
+      <div class="st ran"><b>Ran</b><span>Boltzmann over minima, GBn2 · 78 s</span></div>
+      <div class="st ran"><b>Ran</b><span>Static φ/ψ + harmonic · 121 s</span></div>
+      <div class="st ran"><b>Ran</b><span>5 × 10 ns unbiased · 47 min</span></div>
+      <div class="st ran"><b>Ran</b><span>WT-metad, φ umbrella, MSM · 29–47 min each</span></div>
+      <div class="st def"><b>Deferred</b><span>needs the mdbench-ml env</span></div>
+      <div class="sysn">Adenylate kinase<small>40,119 atoms, solvated</small></div>
+      <div class="st ran"><b>Ran</b><span>Endpoint energies, GBn2 · 3 min</span></div>
+      <div class="st ran"><b>Ran</b><span>Domain angles of 4AKE, 1AKE · 1 s</span></div>
+      <div class="st cfg"><b>Configured</b><span>5 × 100 ns · ≈3.3 days</span></div>
+      <div class="st cfg"><b>Configured</b><span>metad ≈2 d · umbrella ≈2.2 d · MSM ≈26 d</span></div>
+      <div class="st def"><b>Deferred</b><span>not planned for AdK</span></div>
+    </div>
+  </div>
+  <div class="legend">
+    <span><i class="sw first"></i>Run, rows in results</span>
+    <span><i class="sw dash"></i>Config written, not run (over the 6 h ask-first limit)</span>
+  </div>
+
+  <h3>Alanine dipeptide: free energy relative to C7eq/β, by method</h3>
+  <div class="forest">
+    <figure><figcaption>ΔG(αR) <span>kcal/mol · ±1σ</span></figcaption><svg id="fp-ar" viewBox="0 0 480 270" role="img" aria-label="Forest plot of dG alphaR by method"></svg></figure>
+    <figure><figcaption>ΔG(αL/C7ax) <span>kcal/mol · ±1σ</span></figcaption><svg id="fp-al" viewBox="0 0 480 270" role="img" aria-label="Forest plot of dG alphaL by method"></svg></figure>
+  </div>
+  <p class="note">Each panel has its own scale. Rows with no point mean the method never sampled that basin. Cost is wall-clock on the RTX 4050; the MSM's cost includes the L2 trajectories it is built from. L0 and L1 use GBn2 implicit solvent; L2 and L3 use explicit TIP3P.</p>
+
+  <ul class="findings">
+    <li><b>Three methods agree on αR.</b> Unbiased MD, metadynamics and the MSM all give ΔG ≈ 0.47–0.48 kcal/mol, about 30% population.</li>
+    <li><b>The rare basin needed L3.</b> 50 ns of unbiased MD never visited αL (≈3%). Metadynamics and umbrella sampling agree on it at ≈1.9 kcal/mol.</li>
+    <li class="flag"><b>Umbrella αR is unconverged.</b> The bias is on φ only, and ψ stays slow inside each window: the two halves of the data give 21% and 5% αR. This is a CV-choice failure, as the intent file anticipated.</li>
+    <li class="flag"><b>MSM error bars are too small.</b> ±0.02 kcal/mol is about 3× below the spread across replicates. A bootstrap over whole trajectories is pending.</li>
+    <li><b>The nulls land close.</b> L0 and L1 cost about 2 minutes and fall within 0.2 kcal/mol of the explicit-water answer for both basins. Their error bars cover only the choice of starting structures.</li>
+    <li><b>AdK angles separate cleanly.</b> θNMP is 72.6° open and 44.1° closed; θLID is 145.7° and 106.2°. The L0 null calls apo AdK fully closed, which is almost certainly wrong, as a null is allowed to be.</li>
+  </ul>
+</section>
+
 <section>
   <span class="eyebrow">Cost axis</span>
   <h2>What each rung costs on this machine</h2>
-  <p>Approximate wall-clock per calculation on the RTX&nbsp;4050, on a log scale. Solid bars come from the estimates in <span class="mono">docs/HARDWARE.md</span>; hatched bars are rough ranges inferred from the level definitions. All of them are to be replaced by measured numbers from <span class="mono">make bench</span>.</p>
+  <p>Approximate wall-clock per calculation on the RTX&nbsp;4050, on a log scale. Solid bars come from the estimates in <span class="mono">docs/HARDWARE.md</span>; hatched bars are rough ranges inferred from the level definitions. They will be replaced by measured costs as each branch runs. Measured so far: 387 ns/day for a 24k-atom water box, about 153 ns/day for solvated adenylate kinase (40k atoms, GPU shared at the time), and about 1,660 ns/day for alanine dipeptide (885 with PLUMED attached).</p>
   <div class="chart scroll"><svg id="cost" viewBox="0 0 960 330" role="img" aria-label="Log-scale wall-clock ranges for levels L0 to L4"></svg></div>
 </section>
 
@@ -234,7 +303,7 @@ footer{font-family:var(--sans);font-size:.8rem;color:var(--ink3);border-top:1px 
   </ul>
 </section>
 
-<footer>Summarised from README.md, CLAUDE.md, docs/ and intent/ in the mdbench repo, October 2026. Status: planning, no code yet.</footer>
+<footer>Summarised from README.md, CLAUDE.md, docs/, intent/ and results/c.parquet in the mdbench repo, 10 October 2026. Branch C is in progress; branches A, B and D are still at the planning stage.</footer>
 </div>
 
 <script>
@@ -269,5 +338,45 @@ footer{font-family:var(--sans);font-size:.8rem;color:var(--ink3);border-top:1px 
     });
   });
   el('text',{x:R,y:bottom+38,'text-anchor':'end','font-size':11,style:'fill:var(--ink3)'},'wall-clock per calculation, log scale');
+})();
+
+// Forest plots: values from results/c.parquet (ala2.dG.* rows), 10 Oct 2026.
+(function(){
+  const NS='http://www.w3.org/2000/svg';
+  const methods=[
+    {lv:'L0',m:'Boltzmann minima',cost:'78 s'},
+    {lv:'L1',m:'Static + harmonic',cost:'2 min'},
+    {lv:'L2',m:'Unbiased MD',cost:'47 min'},
+    {lv:'L3',m:'WT-metadynamics',cost:'33 min'},
+    {lv:'L3',m:'Umbrella on φ',cost:'29 min'},
+    {lv:'L3',m:'MSM',cost:'47 min'},
+  ];
+  const panels=[
+    {id:'fp-ar',lo:0,hi:1.8,ticks:[0,0.5,1,1.5],vals:[[0.401,0.012],[0.268,0.034],[0.485,0.064],[0.472,0.065],[1.205,0.532,'unconverged'],[0.476,0.024,'error too small']]},
+    {id:'fp-al',lo:1.4,hi:2.2,ticks:[1.4,1.6,1.8,2.0,2.2],vals:[[1.686,0.007],[1.833,0.054],null,[1.875,0.117],[1.924,0.197],null]},
+  ];
+  panels.forEach(p=>{
+    const svg=document.getElementById(p.id);
+    const el=(n,a,t)=>{const e=document.createElementNS(NS,n);for(const k in a)e.setAttribute(k,a[k]);if(t!=null)e.textContent=t;svg.appendChild(e);return e;};
+    const L=176,R=462,T=14,H=36,B=T+H*methods.length;
+    const x=v=>L+(v-p.lo)/(p.hi-p.lo)*(R-L);
+    p.ticks.forEach(t=>{el('line',{x1:x(t),x2:x(t),y1:T,y2:B,stroke:'var(--rule)','stroke-width':1});el('text',{x:x(t),y:B+18,'text-anchor':'middle','font-size':12},t.toFixed(1));});
+    el('line',{x1:L,x2:R,y1:B,y2:B,stroke:'var(--rule2)','stroke-width':1});
+    methods.forEach((m,i)=>{
+      const cy=T+i*H+H/2, v=p.vals[i];
+      if(i>0&&methods[i-1].lv!==m.lv) el('line',{x1:4,x2:R,y1:T+i*H,y2:T+i*H,stroke:'var(--rule)','stroke-width':1,'stroke-dasharray':'2 3'});
+      const t=el('text',{x:4,y:cy-2,'font-size':12.5,style:'fill:var(--ink)'});
+      const a=document.createElementNS(NS,'tspan');a.setAttribute('style','font-family:var(--mono);font-weight:500');a.textContent=m.lv+' ';t.appendChild(a);
+      const b=document.createElementNS(NS,'tspan');b.textContent=m.m;t.appendChild(b);
+      const flag=v&&v[2];
+      el('text',{x:4,y:cy+13,'font-size':11,style:'fill:'+(flag?'var(--D)':'var(--ink3)')},m.cost+(flag?' · '+flag:''));
+      if(!v){el('text',{x:L+6,y:cy+4,'font-size':11.5,style:'fill:var(--ink3);font-style:italic'},'basin not sampled');return;}
+      const col=flag?'var(--D)':'var(--C)';
+      const x1=x(Math.max(p.lo,v[0]-v[1])),x2=x(Math.min(p.hi,v[0]+v[1]));
+      el('line',{x1,x2,y1:cy,y2:cy,stroke:col,'stroke-width':2});
+      [x1,x2].forEach(xx=>el('line',{x1:xx,x2:xx,y1:cy-5,y2:cy+5,stroke:col,'stroke-width':2}));
+      el('circle',{cx:x(v[0]),cy,r:4.5,fill:col,stroke:'var(--panel)','stroke-width':1.5});
+    });
+  });
 })();
 </script>
