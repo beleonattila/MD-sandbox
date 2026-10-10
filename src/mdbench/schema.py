@@ -47,6 +47,8 @@ NULLABLE: frozenset[str] = frozenset(f.name for f in SCHEMA if f.nullable)
 
 _LEVEL_RE = re.compile(r"^L[0-4]$")
 _BRANCH_RE = re.compile(r"^[a-z][a-z0-9_]*$")
+# Identifies one calculation; append_rows refuses a second row with the same key.
+_ROW_KEY = ("system", "level", "method", "replicate", "config_hash", "code_version")
 
 
 class SchemaError(ValueError):
@@ -157,6 +159,17 @@ def append_rows(
     if new.num_rows == 0:
         return path
     old = read_results(branch, directory)
+    if old.num_rows:
+        seen = set(zip(*(old.column(c).to_pylist() for c in _ROW_KEY), strict=True))
+        dupes = [
+            k for k in zip(*(new.column(c).to_pylist() for c in _ROW_KEY), strict=True) if k in seen
+        ]
+        if dupes:
+            raise SchemaError(
+                f"{len(dupes)} row(s) already in {path.name} for the same calculation "
+                f"({', '.join(_ROW_KEY)}), e.g. {dupes[0]}. Re-running a finished config "
+                "does not create a new result; change the config or code to make a new one."
+            )
     table = pa.concat_tables([old, new]) if old.num_rows else new
     tmp = path.with_name(f".{path.name}.tmp-{os.getpid()}")
     pq.write_table(table, tmp)

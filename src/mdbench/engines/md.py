@@ -20,6 +20,7 @@ names in the script (COLVAR, HILLS, ...) land next to the trajectory.
 from __future__ import annotations
 
 import contextlib
+import gc
 import json
 import logging
 import shutil
@@ -293,6 +294,7 @@ def run_md(
             if eq > 0:
                 sim.step(eq)
             sim.currentStep = 0
+            sim.context.setTime(0.0)
             state = sim.context.getState(getPositions=True, enforcePeriodicBox=False)
             _write_subset_pdb(topology, state.getPositions(), atoms, top_pdb)
 
@@ -335,6 +337,10 @@ def run_md(
         sim.saveCheckpoint(str(chk))
         state = sim.context.getState(getPositions=True)
         _write_subset_pdb(topology, state.getPositions(), atoms, rd / "final.pdb")
+        # Destroy the context here, inside run_dir, so PLUMED finalises and flushes
+        # COLVAR/HILLS before the caller reads them.
+        del state, sim
+        gc.collect()
 
     wall = time.perf_counter() - t0
     ns = remaining * dt_fs * 1e-6

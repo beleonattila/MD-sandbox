@@ -49,6 +49,14 @@ def test_round_trip_and_append(isolated_results: Path):
     assert df["reference"].iloc[1] == 2.0
 
 
+def test_append_rejects_duplicate_calculation(isolated_results: Path):
+    append_rows("c", [_row()])
+    with pytest.raises(SchemaError, match="already in"):
+        append_rows("c", [_row(prediction=9.9, wall_clock_s=0.001)])
+    append_rows("c", [_row(code_version="def5678")])
+    assert read_results("c").num_rows == 2
+
+
 @pytest.mark.parametrize(
     "bad",
     [

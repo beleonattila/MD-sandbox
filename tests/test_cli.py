@@ -8,7 +8,7 @@ import yaml
 from mdbench import cli
 from mdbench.config import RESOLVED_NAME
 from mdbench.registry import get_runner, register
-from mdbench.schema import read_results
+from mdbench.schema import SchemaError, read_results
 
 CALLS: list[Path] = []
 
@@ -43,9 +43,10 @@ def _write_cfg(tmp_path: Path, **kw) -> Path:
 def test_run_dispatch_appends_row(tmp_path: Path, isolated_results: Path):
     cfg = _write_cfg(tmp_path)
     assert cli.main(["run", str(cfg)]) == 0
-    assert cli.main(["run", str(cfg)]) == 0
+    with pytest.raises(SchemaError, match="already in"):
+        cli.main(["run", str(cfg)])
     df = read_results("zz").to_pandas()
-    assert len(df) == 2
+    assert len(df) == 1
     r = df.iloc[0]
     assert (r.system, r.branch, r.level, r.method) == ("toy", "zz", "L0", "constant")
     assert r.prediction == 4.2 and r.uncertainty == 0.1 and r.gpu == "none"
