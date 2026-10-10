@@ -1,0 +1,322 @@
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Choosing a molecular simulation method — decision tree</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Archivo:wght@400;500;600&family=Source+Serif+4:opsz,wght@8..60,400;8..60,600&display=swap" rel="stylesheet">
+<style>
+:root{--paper:#EDEFF0;--panel:#F7F8F8;--ink:#12171A;--ink2:#4C5760;--ink3:#7A858C;--rule:#CDD4D7;--rule2:#B3BDC2;
+--sans:'Archivo','Helvetica Neue',Arial,sans-serif;--serif:'Source Serif 4',Charter,Georgia,serif;}
+*{box-sizing:border-box}
+html{-webkit-print-color-adjust:exact;print-color-adjust:exact}
+body{margin:0;background:var(--paper);color:var(--ink);font-family:var(--sans);font-size:14px;line-height:1.45}
+.wrap{max-width:1700px;margin:0 auto;padding:44px 40px 64px}
+h1{font-family:var(--serif);font-weight:600;font-size:50px;line-height:1.03;margin:0 0 12px;letter-spacing:-.015em}
+.dek{font-family:var(--serif);font-size:19px;line-height:1.5;color:var(--ink2);max-width:78ch;margin:0}
+.head{border-bottom:3px solid var(--ink);padding-bottom:20px;margin-bottom:26px}
+
+.pre{display:grid;grid-template-columns:repeat(3,1fr);gap:20px;margin-bottom:34px}
+.pre div{background:var(--panel);border:1px solid var(--rule);border-top:4px solid #B0453B;padding:16px 18px}
+.pre h3{font-family:var(--serif);font-size:18px;font-weight:600;margin:0 0 6px}
+.pre p{margin:0;font-size:13px;line-height:1.5;color:var(--ink2)}
+
+.chart{background:#FBFCFC;border:1px solid var(--rule);padding:22px 18px;margin-bottom:44px}
+.chart svg{width:100%;height:auto;display:block}
+.rt{font-family:var(--serif);font-size:17px;fill:#FFFFFF}
+.bt{font-family:var(--serif);font-size:16px;font-weight:600}
+.bs{font-family:var(--sans);font-size:11px;fill:#7A858C}
+.gt{font-family:var(--sans);font-size:12.5px;fill:#2C363C}
+.at{font-family:var(--serif);font-size:16px;font-weight:600}
+.ao{font-family:var(--sans);font-size:11.5px;fill:#4C5760}
+.ac{font-family:var(--sans);font-size:11.5px;fill:#7A858C}
+
+h2{font-family:var(--serif);font-size:28px;font-weight:600;margin:0 0 6px;letter-spacing:-.01em;
+border-bottom:1px solid var(--ink);padding-bottom:8px}
+.sub{font-size:14px;color:var(--ink2);margin:10px 0 20px;max-width:82ch}
+table{width:100%;border-collapse:collapse;background:var(--panel);font-size:13.5px}
+th,td{text-align:left;padding:10px 14px;border-bottom:1px solid var(--rule);vertical-align:top}
+th{font-size:11.5px;color:var(--ink3);font-weight:500;border-bottom:1.5px solid var(--rule2)}
+td:first-child{font-weight:500;width:30%}
+.sec{margin-top:46px}
+@media print{@page{size:1189mm 841mm;margin:12mm} .wrap{max-width:none;padding:0} .sec{break-inside:avoid}}
+</style>
+<div class="wrap">
+<header class="head">
+<h1>Choosing a method: the decision tree</h1>
+<p class="dek">Companion to the methods poster. The tree is read left to right — the first question is what you need to compute, not which tool you would like to learn. Most wasted simulation time comes from answering a Branch&nbsp;B question with a Branch&nbsp;C tool, or the reverse.</p>
+</header>
+
+<div class="pre">
+<div><h3>Check first: is the starting structure trustworthy?</h3><p>MD amplifies a bad model rather than repairing it. Inspect pLDDT and PAE, protonation states at the relevant pH, missing loops and the oligomeric state before any of the branches below apply.</p></div>
+<div><h3>Check first: is the timescale reachable?</h3><p>Estimate the barrier. At 300&nbsp;K a 12&nbsp;kcal/mol barrier is a millisecond event, which no unbiased trajectory will sample. If the answer is no, you are on the enhanced-sampling or rare-event branch whether you like it or not.</p></div>
+<div><h3>Check first: does an experiment already answer it?</h3><p>HDX, NMR relaxation dispersion, room-temperature or time-resolved crystallography and cryo-EM heterogeneity analysis all measure ensembles directly. Simulation is most useful where it is restrained by one of these, not where it substitutes for one.</p></div>
+</div>
+
+<div class="chart">
+<svg viewBox="0 0 1640 1594" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Decision tree for selecting a molecular simulation method">
+<rect x="30" y="755" width="170" height="104" rx="8" fill="#12171A"/>
+<text class="rt" x="115" y="783" text-anchor="middle">What is the</text>
+<text class="rt" x="115" y="805" text-anchor="middle">observable you</text>
+<text class="rt" x="115" y="827" text-anchor="middle">actually need?</text>
+<path d="M200 807 H212 V102 H225" fill="none" stroke="#5A6B73" stroke-width="1.6"/>
+<rect x="225" y="76" width="195" height="52" rx="7" fill="#FFFFFF" stroke="#5A6B73" stroke-width="2"/>
+<text class="bt" x="322" y="100" text-anchor="middle" fill="#5A6B73">A structure</text>
+<text class="bs" x="322" y="122" text-anchor="middle">you want a pose, not a distribution</text>
+<path d="M420 102 H432 V102 H445" fill="none" stroke="#5A6B73" stroke-width="1.2" stroke-opacity="0.75"/>
+<path d="M200 807 H212 V384 H225" fill="none" stroke="#2F6E8F" stroke-width="1.6"/>
+<rect x="225" y="348" width="195" height="72" rx="7" fill="#FFFFFF" stroke="#2F6E8F" stroke-width="2"/>
+<text class="bt" x="322" y="372" text-anchor="middle" fill="#2F6E8F">A population or a free</text>
+<text class="bt" x="322" y="392" text-anchor="middle" fill="#2F6E8F">energy</text>
+<text class="bs" x="322" y="414" text-anchor="middle">thermodynamics</text>
+<path d="M420 384 H432 V196 H445" fill="none" stroke="#2F6E8F" stroke-width="1.2" stroke-opacity="0.75"/>
+<path d="M420 384 H432 V290 H445" fill="none" stroke="#2F6E8F" stroke-width="1.2" stroke-opacity="0.75"/>
+<path d="M420 384 H432 V384 H445" fill="none" stroke="#2F6E8F" stroke-width="1.2" stroke-opacity="0.75"/>
+<path d="M420 384 H432 V478 H445" fill="none" stroke="#2F6E8F" stroke-width="1.2" stroke-opacity="0.75"/>
+<path d="M420 384 H432 V572 H445" fill="none" stroke="#2F6E8F" stroke-width="1.2" stroke-opacity="0.75"/>
+<path d="M200 807 H212 V760 H225" fill="none" stroke="#96590F" stroke-width="1.6"/>
+<rect x="225" y="724" width="195" height="72" rx="7" fill="#FFFFFF" stroke="#96590F" stroke-width="2"/>
+<text class="bt" x="322" y="748" text-anchor="middle" fill="#96590F">A rate, a path, a</text>
+<text class="bt" x="322" y="768" text-anchor="middle" fill="#96590F">mechanism</text>
+<text class="bs" x="322" y="790" text-anchor="middle">kinetics</text>
+<path d="M420 760 H432 V666 H445" fill="none" stroke="#96590F" stroke-width="1.2" stroke-opacity="0.75"/>
+<path d="M420 760 H432 V760 H445" fill="none" stroke="#96590F" stroke-width="1.2" stroke-opacity="0.75"/>
+<path d="M420 760 H432 V854 H445" fill="none" stroke="#96590F" stroke-width="1.2" stroke-opacity="0.75"/>
+<path d="M200 807 H212 V1042 H225" fill="none" stroke="#5A3D8C" stroke-width="1.6"/>
+<rect x="225" y="1006" width="195" height="72" rx="7" fill="#FFFFFF" stroke="#5A3D8C" stroke-width="2"/>
+<text class="bt" x="322" y="1030" text-anchor="middle" fill="#5A3D8C">An energy where</text>
+<text class="bt" x="322" y="1050" text-anchor="middle" fill="#5A3D8C">chemistry happens</text>
+<text class="bs" x="322" y="1072" text-anchor="middle">bonds break or form</text>
+<path d="M420 1042 H432 V948 H445" fill="none" stroke="#5A3D8C" stroke-width="1.2" stroke-opacity="0.75"/>
+<path d="M420 1042 H432 V1042 H445" fill="none" stroke="#5A3D8C" stroke-width="1.2" stroke-opacity="0.75"/>
+<path d="M420 1042 H432 V1136 H445" fill="none" stroke="#5A3D8C" stroke-width="1.2" stroke-opacity="0.75"/>
+<path d="M200 807 H212 V1324 H225" fill="none" stroke="#96285A" stroke-width="1.6"/>
+<rect x="225" y="1288" width="195" height="72" rx="7" fill="#FFFFFF" stroke="#96285A" stroke-width="2"/>
+<text class="bt" x="322" y="1312" text-anchor="middle" fill="#96285A">Something that does</text>
+<text class="bt" x="322" y="1332" text-anchor="middle" fill="#96285A">not exist yet</text>
+<text class="bs" x="322" y="1354" text-anchor="middle">design</text>
+<path d="M420 1324 H432 V1230 H445" fill="none" stroke="#96285A" stroke-width="1.2" stroke-opacity="0.75"/>
+<path d="M420 1324 H432 V1324 H445" fill="none" stroke="#96285A" stroke-width="1.2" stroke-opacity="0.75"/>
+<path d="M420 1324 H432 V1418 H445" fill="none" stroke="#96285A" stroke-width="1.2" stroke-opacity="0.75"/>
+<path d="M200 807 H212 V1512 H225" fill="none" stroke="#1A7359" stroke-width="1.6"/>
+<rect x="225" y="1476" width="195" height="72" rx="7" fill="#FFFFFF" stroke="#1A7359" stroke-width="2"/>
+<text class="bt" x="322" y="1500" text-anchor="middle" fill="#1A7359">Too big or too slow,</text>
+<text class="bt" x="322" y="1520" text-anchor="middle" fill="#1A7359">whatever the question</text>
+<text class="bs" x="322" y="1542" text-anchor="middle">scale gate</text>
+<path d="M420 1512 H432 V1512 H445" fill="none" stroke="#1A7359" stroke-width="1.2" stroke-opacity="0.75"/>
+<rect x="445" y="68" width="360" height="69" rx="6" fill="#F1F3F4" stroke="#C6CED2" stroke-width="1"/>
+<text class="gt" x="461" y="88">One structure or complex answers it. You want</text>
+<text class="gt" x="461" y="105">the pose or the interface, not how much it</text>
+<text class="gt" x="461" y="122">moves.</text>
+<line x1="805" y1="102" x2="830" y2="102" stroke="#5A6B73" stroke-width="1.2" stroke-opacity="0.75"/>
+<circle cx="828" cy="102" r="3" fill="#5A6B73"/>
+<rect x="830" y="65" width="780" height="74" rx="6" fill="#FFFFFF" stroke="#C6CED2" stroke-width="1"/>
+<rect x="830" y="65" width="4" height="74" fill="#5A6B73"/>
+<text class="at" x="848" y="87" fill="#5A6B73">Structure prediction — you do not need MD</text>
+<text class="ao" x="848" y="104">AlphaFold3 · Boltz-2 · Chai-1 · ESMFold · docking for poses</text>
+<text class="ac" x="848" y="121">Read pLDDT and PAE before anything else. A low-confidence region is usually a flexible one, which is a</text>
+<text class="ac" x="848" y="136">Branch B question rather than a prediction failure.</text>
+<rect x="445" y="162" width="360" height="69" rx="6" fill="#F1F3F4" stroke="#C6CED2" stroke-width="1"/>
+<text class="gt" x="461" y="182">Relative free energy of a defined chemical</text>
+<text class="gt" x="461" y="199">change: one point mutation, or a congeneric</text>
+<text class="gt" x="461" y="216">ligand series.</text>
+<line x1="805" y1="196" x2="830" y2="196" stroke="#2F6E8F" stroke-width="1.2" stroke-opacity="0.75"/>
+<circle cx="828" cy="196" r="3" fill="#2F6E8F"/>
+<rect x="830" y="159" width="780" height="74" rx="6" fill="#FFFFFF" stroke="#C6CED2" stroke-width="1"/>
+<rect x="830" y="159" width="4" height="74" fill="#2F6E8F"/>
+<text class="at" x="848" y="181" fill="#2F6E8F">Alchemical free energy (FEP / TI)</text>
+<text class="ao" x="848" y="198">FEP+ · OpenFE · pmx · GROMACS or AMBER with MBAR</text>
+<text class="ac" x="848" y="215">Reaches ~1 kcal/mol on well-behaved systems. Needs both endpoints, a trustworthy starting structure, and</text>
+<text class="ac" x="848" y="230">hours to days of GPU per edge. Breaks when the perturbation shifts the conformational ensemble.</text>
+<rect x="445" y="264" width="360" height="52" rx="6" fill="#F1F3F4" stroke="#C6CED2" stroke-width="1"/>
+<text class="gt" x="461" y="284">Fold stability only — will the variant still</text>
+<text class="gt" x="461" y="301">fold and express?</text>
+<line x1="805" y1="290" x2="830" y2="290" stroke="#2F6E8F" stroke-width="1.2" stroke-opacity="0.75"/>
+<circle cx="828" cy="290" r="3" fill="#2F6E8F"/>
+<rect x="830" y="253" width="780" height="74" rx="6" fill="#FFFFFF" stroke="#C6CED2" stroke-width="1"/>
+<rect x="830" y="253" width="4" height="74" fill="#2F6E8F"/>
+<text class="at" x="848" y="275" fill="#2F6E8F">Predict first, escalate selectively</text>
+<text class="ao" x="848" y="292">ThermoMPNN · stability oracles · BioEmu stability head · FEP for the survivors</text>
+<text class="ac" x="848" y="309">Predictors cost seconds and triage well enough. Spend physics only on the handful you will actually build.</text>
+<text class="ac" x="848" y="324">Stability is not activity — do not let a good ddG stand in for function.</text>
+<rect x="445" y="358" width="360" height="52" rx="6" fill="#F1F3F4" stroke="#C6CED2" stroke-width="1"/>
+<text class="gt" x="461" y="378">Conformational populations, needed fast or</text>
+<text class="gt" x="461" y="395">across many sequences.</text>
+<line x1="805" y1="384" x2="830" y2="384" stroke="#2F6E8F" stroke-width="1.2" stroke-opacity="0.75"/>
+<circle cx="828" cy="384" r="3" fill="#2F6E8F"/>
+<rect x="830" y="347" width="780" height="74" rx="6" fill="#FFFFFF" stroke="#C6CED2" stroke-width="1"/>
+<rect x="830" y="347" width="4" height="74" fill="#2F6E8F"/>
+<text class="at" x="848" y="369" fill="#2F6E8F">Generative ensemble models</text>
+<text class="ao" x="848" y="386">BioEmu · AlphaFlow / ESMFlow · BBFlow · ConfDiff</text>
+<text class="ac" x="848" y="403">About 10^3 independent structures per GPU-hour, ~1 kcal/mol on relative free energies. No time axis, so no</text>
+<text class="ac" x="848" y="418">rates. Fidelity outside the training MD is unproven — treat a novel fold as extrapolation.</text>
+<rect x="445" y="444" width="360" height="69" rx="6" fill="#F1F3F4" stroke="#C6CED2" stroke-width="1"/>
+<text class="gt" x="461" y="464">Populations in a specific context — ligand</text>
+<text class="gt" x="461" y="481">bound, in a membrane, a particular mutant — and</text>
+<text class="gt" x="461" y="498">you can name the slow coordinate.</text>
+<line x1="805" y1="478" x2="830" y2="478" stroke="#2F6E8F" stroke-width="1.2" stroke-opacity="0.75"/>
+<circle cx="828" cy="478" r="3" fill="#2F6E8F"/>
+<rect x="830" y="441" width="780" height="74" rx="6" fill="#FFFFFF" stroke="#C6CED2" stroke-width="1"/>
+<rect x="830" y="441" width="4" height="74" fill="#2F6E8F"/>
+<text class="at" x="848" y="463" fill="#2F6E8F">Biased MD along a collective variable</text>
+<text class="ao" x="848" y="480">OPES (prefer over well-tempered metadynamics) · umbrella sampling with MBAR · PLUMED · Colvars</text>
+<text class="ac" x="848" y="497">Converges quickly when the CV is right. The CV is the entire risk. Demonstrate convergence by rebuilding the</text>
+<text class="ac" x="848" y="512">surface from independent runs, not by watching the bias flatten.</text>
+<rect x="445" y="546" width="360" height="52" rx="6" fill="#F1F3F4" stroke="#C6CED2" stroke-width="1"/>
+<text class="gt" x="461" y="566">Same problem, but you cannot name the slow</text>
+<text class="gt" x="461" y="583">coordinate.</text>
+<line x1="805" y1="572" x2="830" y2="572" stroke="#2F6E8F" stroke-width="1.2" stroke-opacity="0.75"/>
+<circle cx="828" cy="572" r="3" fill="#2F6E8F"/>
+<rect x="830" y="535" width="780" height="74" rx="6" fill="#FFFFFF" stroke="#C6CED2" stroke-width="1"/>
+<rect x="830" y="535" width="4" height="74" fill="#2F6E8F"/>
+<text class="at" x="848" y="557" fill="#2F6E8F">Coordinate-free sampling, or learn the coordinate</text>
+<text class="ao" x="848" y="574">REST2 and Hamiltonian replica exchange · adaptive sampling · Deep-TICA · VAMPnets</text>
+<text class="ac" x="848" y="591">Costs more than a biased run and buys generality. If you already hold any MD of the system, learn the CV</text>
+<text class="ac" x="848" y="606">from it first — that is usually cheaper than brute-force replica exchange.</text>
+<rect x="445" y="632" width="360" height="69" rx="6" fill="#F1F3F4" stroke="#C6CED2" stroke-width="1"/>
+<text class="gt" x="461" y="652">You need a rate or a mechanism, and short</text>
+<text class="gt" x="461" y="669">unbiased runs already show the transition a few</text>
+<text class="gt" x="461" y="686">times.</text>
+<line x1="805" y1="666" x2="830" y2="666" stroke="#96590F" stroke-width="1.2" stroke-opacity="0.75"/>
+<circle cx="828" cy="666" r="3" fill="#96590F"/>
+<rect x="830" y="629" width="780" height="74" rx="6" fill="#FFFFFF" stroke="#C6CED2" stroke-width="1"/>
+<rect x="830" y="629" width="4" height="74" fill="#96590F"/>
+<text class="at" x="848" y="651" fill="#96590F">Markov state model</text>
+<text class="ao" x="848" y="668">PyEMMA · deeptime · TICA · VAMPnets · MDAnalysis</text>
+<text class="ac" x="848" y="685">Recovers timescales far longer than any single trajectory by pooling many short ones. Report implied-</text>
+<text class="ac" x="848" y="700">timescale convergence and a Chapman-Kolmogorov test, or the rate is not defensible.</text>
+<rect x="445" y="734" width="360" height="52" rx="6" fill="#F1F3F4" stroke="#C6CED2" stroke-width="1"/>
+<text class="gt" x="461" y="754">The transition is too rare to appear in</text>
+<text class="gt" x="461" y="771">unbiased runs at all.</text>
+<line x1="805" y1="760" x2="830" y2="760" stroke="#96590F" stroke-width="1.2" stroke-opacity="0.75"/>
+<circle cx="828" cy="760" r="3" fill="#96590F"/>
+<rect x="830" y="723" width="780" height="74" rx="6" fill="#FFFFFF" stroke="#C6CED2" stroke-width="1"/>
+<rect x="830" y="723" width="4" height="74" fill="#96590F"/>
+<text class="at" x="848" y="745" fill="#96590F">Rare-event samplers that preserve kinetics</text>
+<text class="ao" x="848" y="762">WESTPA (weighted ensemble) · infrequent metadynamics · milestoning · forward flux sampling</text>
+<text class="ac" x="848" y="779">These return rates. Ordinary metadynamics returns free energies and not rates — the distinction is routinely</text>
+<text class="ac" x="848" y="794">blurred in papers and it matters for anything mechanistic.</text>
+<rect x="445" y="828" width="360" height="52" rx="6" fill="#F1F3F4" stroke="#C6CED2" stroke-width="1"/>
+<text class="gt" x="461" y="848">Both endpoints are known and you want the path</text>
+<text class="gt" x="461" y="865">between them.</text>
+<line x1="805" y1="854" x2="830" y2="854" stroke="#96590F" stroke-width="1.2" stroke-opacity="0.75"/>
+<circle cx="828" cy="854" r="3" fill="#96590F"/>
+<rect x="830" y="817" width="780" height="74" rx="6" fill="#FFFFFF" stroke="#C6CED2" stroke-width="1"/>
+<rect x="830" y="817" width="4" height="74" fill="#96590F"/>
+<text class="at" x="848" y="839" fill="#96590F">Path sampling or generative interpolation</text>
+<text class="ao" x="848" y="856">Transition path sampling · string method · MDGen interpolation · Doob h-transform samplers</text>
+<text class="ac" x="848" y="873">Generative paths are plausible, not Boltzmann-weighted. Compute a committor or reweight before quoting a</text>
+<text class="ac" x="848" y="888">barrier from one. This is the one kinetic question an ensemble model can be pointed at.</text>
+<rect x="445" y="922" width="360" height="52" rx="6" fill="#F1F3F4" stroke="#C6CED2" stroke-width="1"/>
+<text class="gt" x="461" y="942">A covalent bond forms or breaks, and you need</text>
+<text class="gt" x="461" y="959">the barrier or the transition-state geometry.</text>
+<line x1="805" y1="948" x2="830" y2="948" stroke="#5A3D8C" stroke-width="1.2" stroke-opacity="0.75"/>
+<circle cx="828" cy="948" r="3" fill="#5A3D8C"/>
+<rect x="830" y="911" width="780" height="74" rx="6" fill="#FFFFFF" stroke="#C6CED2" stroke-width="1"/>
+<rect x="830" y="911" width="4" height="74" fill="#5A3D8C"/>
+<text class="at" x="848" y="933" fill="#5A3D8C">QM/MM or empirical valence bond</text>
+<text class="ao" x="848" y="950">CP2K · ORCA · Q-Chem · ONIOM embedding · Q for EVB</text>
+<text class="ac" x="848" y="967">The only branch that can answer this at all. Budget 10^5 to 10^6 core-hours for a converged free-energy</text>
+<text class="ac" x="848" y="982">surface, and expect to defend functional choice, QM-region size and boundary treatment.</text>
+<rect x="445" y="1008" width="360" height="69" rx="6" fill="#F1F3F4" stroke="#C6CED2" stroke-width="1"/>
+<text class="gt" x="461" y="1028">Reactive dynamics with real sampling, or no</text>
+<text class="gt" x="461" y="1045">classical parameters exist for your metal,</text>
+<text class="gt" x="461" y="1062">cofactor or non-canonical residue.</text>
+<line x1="805" y1="1042" x2="830" y2="1042" stroke="#5A3D8C" stroke-width="1.2" stroke-opacity="0.75"/>
+<circle cx="828" cy="1042" r="3" fill="#5A3D8C"/>
+<rect x="830" y="1005" width="780" height="74" rx="6" fill="#FFFFFF" stroke="#C6CED2" stroke-width="1"/>
+<rect x="830" y="1005" width="4" height="74" fill="#5A3D8C"/>
+<text class="at" x="848" y="1027" fill="#5A3D8C">Machine-learned force field, usually as ML/MM</text>
+<text class="ao" x="848" y="1044">MACE-OFF · MACE-polar-1 · AIMNet2 · Egret-1 · OpenMM-ML · ASE</text>
+<text class="ac" x="848" y="1061">Near-DFT accuracy at 10^2 to 10^3 times classical cost. Gate production runs on an uncertainty estimate:</text>
+<text class="ac" x="848" y="1076">these models fail silently out of distribution and give no signal that they have.</text>
+<rect x="445" y="1110" width="360" height="52" rx="6" fill="#F1F3F4" stroke="#C6CED2" stroke-width="1"/>
+<text class="gt" x="461" y="1130">You only need relative energies of a few well-</text>
+<text class="gt" x="461" y="1147">defined states.</text>
+<line x1="805" y1="1136" x2="830" y2="1136" stroke="#5A3D8C" stroke-width="1.2" stroke-opacity="0.75"/>
+<circle cx="828" cy="1136" r="3" fill="#5A3D8C"/>
+<rect x="830" y="1099" width="780" height="74" rx="6" fill="#FFFFFF" stroke="#C6CED2" stroke-width="1"/>
+<rect x="830" y="1099" width="4" height="74" fill="#5A3D8C"/>
+<text class="at" x="848" y="1121" fill="#5A3D8C">Static QM or active-site cluster models</text>
+<text class="ao" x="848" y="1138">Truncated cluster in DFT · single-point QM/MM on MD snapshots</text>
+<text class="ac" x="848" y="1155">Cheap and often sufficient. But a handful of optimised geometries is not an ensemble — the number is</text>
+<text class="ac" x="848" y="1170">conditional on the structures you picked, and that conditioning is rarely stated.</text>
+<rect x="445" y="1206" width="360" height="48" rx="6" fill="#F1F3F4" stroke="#C6CED2" stroke-width="1"/>
+<text class="gt" x="461" y="1226">You want a backbone that does not exist yet.</text>
+<line x1="805" y1="1230" x2="830" y2="1230" stroke="#96285A" stroke-width="1.2" stroke-opacity="0.75"/>
+<circle cx="828" cy="1230" r="3" fill="#96285A"/>
+<rect x="830" y="1193" width="780" height="74" rx="6" fill="#FFFFFF" stroke="#C6CED2" stroke-width="1"/>
+<rect x="830" y="1193" width="4" height="74" fill="#96285A"/>
+<text class="at" x="848" y="1215" fill="#96285A">Generative backbone design</text>
+<text class="ao" x="848" y="1232">RFdiffusion and RFdiffusion2 · Chroma · Genie2</text>
+<text class="ac" x="848" y="1249">Motif scaffolding is the inpainting pattern from the methods poster. Filter aggressively — most designs</text>
+<text class="ac" x="848" y="1264">fail, and in-silico filtering is orders of magnitude cheaper than the assay that would catch it.</text>
+<rect x="445" y="1300" width="360" height="48" rx="6" fill="#F1F3F4" stroke="#C6CED2" stroke-width="1"/>
+<text class="gt" x="461" y="1320">You have a backbone and need a sequence for it.</text>
+<line x1="805" y1="1324" x2="830" y2="1324" stroke="#96285A" stroke-width="1.2" stroke-opacity="0.75"/>
+<circle cx="828" cy="1324" r="3" fill="#96285A"/>
+<rect x="830" y="1287" width="780" height="74" rx="6" fill="#FFFFFF" stroke="#C6CED2" stroke-width="1"/>
+<rect x="830" y="1287" width="4" height="74" fill="#96285A"/>
+<text class="at" x="848" y="1309" fill="#96285A">Inverse folding</text>
+<text class="ao" x="848" y="1326">ProteinMPNN · LigandMPNN · ESM-IF</text>
+<text class="ac" x="848" y="1343">Validate with AlphaFold2 or AlphaFold3 self-consistency — backbone RMSD of the refolded sequence against the</text>
+<text class="ac" x="848" y="1358">design target — before committing to anything downstream.</text>
+<rect x="445" y="1392" width="360" height="52" rx="6" fill="#F1F3F4" stroke="#C6CED2" stroke-width="1"/>
+<text class="gt" x="461" y="1412">You have a working protein and want a better</text>
+<text class="gt" x="461" y="1429">version of it.</text>
+<line x1="805" y1="1418" x2="830" y2="1418" stroke="#96285A" stroke-width="1.2" stroke-opacity="0.75"/>
+<circle cx="828" cy="1418" r="3" fill="#96285A"/>
+<rect x="830" y="1381" width="780" height="74" rx="6" fill="#FFFFFF" stroke="#C6CED2" stroke-width="1"/>
+<rect x="830" y="1381" width="4" height="74" fill="#96285A"/>
+<text class="at" x="848" y="1403" fill="#96285A">ML-guided directed evolution</text>
+<text class="ao" x="848" y="1420">Zero-shot ESM or EVE ranking · supervised low-N models · uncertainty-aware acquisition · ProteusAI</text>
+<text class="ac" x="848" y="1437">The bottleneck is assay quality and epistasis, not model choice. Size the wet-lab loop first, then pick a</text>
+<text class="ac" x="848" y="1452">model that fits the number of variants you can actually measure per round.</text>
+<rect x="445" y="1478" width="360" height="69" rx="6" fill="#F1F3F4" stroke="#C6CED2" stroke-width="1"/>
+<text class="gt" x="461" y="1498">The system exceeds roughly 10^6 particles, or</text>
+<text class="gt" x="461" y="1515">the observable needs more than about 10</text>
+<text class="gt" x="461" y="1532">microseconds.</text>
+<line x1="805" y1="1512" x2="830" y2="1512" stroke="#1A7359" stroke-width="1.2" stroke-opacity="0.75"/>
+<circle cx="828" cy="1512" r="3" fill="#1A7359"/>
+<rect x="830" y="1475" width="780" height="74" rx="6" fill="#FFFFFF" stroke="#C6CED2" stroke-width="1"/>
+<rect x="830" y="1475" width="4" height="74" fill="#1A7359"/>
+<text class="at" x="848" y="1497" fill="#1A7359">Coarse-grain, then back-map</text>
+<text class="ao" x="848" y="1514">MARTINI 3 · SIRAH · AWSEM · GenZProt and DiAMoNDBack for backmapping</text>
+<text class="ac" x="848" y="1531">You lose chemistry entirely, so this can never answer Branch D. MARTINI is known to over-stick proteins;</text>
+<text class="ac" x="848" y="1546">check any prediction against an experimental restraint before trusting it.</text>
+</svg>
+</div>
+
+<section class="sec">
+<h2>Mis-selections that survive peer review</h2>
+<p class="sub">Each of these is a category error rather than a technical mistake, which is why more compute does not fix any of them.</p>
+<table>
+<thead><tr><th>The claim</th><th>Why it does not follow</th><th>What would actually support it</th></tr></thead>
+<tbody>
+<tr><td>"We ran 1&nbsp;&micro;s of unbiased MD and the pocket never opened, so it does not open."</td><td>Absence of a transition in a finite trajectory is uninformative about a process slower than the trajectory. You measured your sampling, not the protein.</td><td>An enhanced-sampling free-energy surface, or an ensemble model, or an explicit statement of the timescale you could have resolved.</td></tr>
+<tr><td>"The generative ensemble model shows the closed state is 8%, so the opening rate is slow."</td><td>Populations and rates are independent. A 92:8 split is compatible with microsecond or second interconversion — the barrier height is not encoded in the populations.</td><td>An MSM, a weighted-ensemble calculation, or infrequent metadynamics. Anything with a time axis.</td></tr>
+<tr><td>"The stability predictor gives &minus;1.8&nbsp;kcal/mol, so this variant will be more active."</td><td>Stability and activity are different observables and frequently anticorrelated — active-site residues are often destabilising by design.</td><td>Measure activity, or model the catalytic step. Use stability only as a filter against unfolding, not as a proxy for function.</td></tr>
+<tr><td>"The docking score is &minus;9.4&nbsp;kcal/mol, so the binding free energy is &minus;9.4&nbsp;kcal/mol."</td><td>Docking scores are ranking heuristics with no statistical-mechanical definition. The units are decorative.</td><td>Alchemical FEP or absolute binding free energy, with a convergence analysis and, ideally, a measured congeneric series to calibrate against.</td></tr>
+<tr><td>"We compared the minimised energies of the two conformers."</td><td>That discards the basin volume, which is the entropic half of the free energy and often the deciding half.</td><td>A free-energy difference: integrate the density over each basin, or run an alchemical or biased calculation.</td></tr>
+<tr><td>"The MLFF gave a smooth trajectory, so the potential is fine."</td><td>Machine-learned potentials extrapolate silently. Smoothness is not evidence of accuracy anywhere outside the training distribution.</td><td>An uncertainty estimate along the trajectory, plus spot-check single points against the DFT level the model was trained on.</td></tr>
+<tr><td>"AlphaFold gives two different models, so the protein has two states."</td><td>Model diversity reflects MSA depth and sampling in the predictor, not a Boltzmann-weighted ensemble. There is no temperature in it.</td><td>An ensemble method with a defined distribution — a generative ensemble model, or explicit MD.</td></tr>
+</tbody>
+</table>
+</section>
+
+<section class="sec">
+<h2>Rough cost to a first defensible number</h2>
+<p class="sub">Order of magnitude, assuming a working structure in hand and one modern GPU or one CPU node. The dominant term is almost always human time on setup and validation, not the run itself.</p>
+<table>
+<thead><tr><th>Route</th><th>Wall-clock to first result</th><th>Dominant cost</th></tr></thead>
+<tbody>
+<tr><td>Structure prediction</td><td>Minutes to hours</td><td>Nothing. This is the cheap branch and it should always be step one.</td></tr>
+<tr><td>Generative ensemble model</td><td>Hours</td><td>Inference is cheap; interpreting whether the target is inside the training distribution is not.</td></tr>
+<tr><td>Unbiased MD, single microsecond</td><td>Days</td><td>System preparation, protonation, membrane building. Then the realisation that a microsecond was not enough.</td></tr>
+<tr><td>Alchemical FEP, one perturbation edge</td><td>Days</td><td>Setup and mapping the perturbation correctly; convergence checking per edge.</td></tr>
+<tr><td>Enhanced sampling, converged surface</td><td>Days to weeks</td><td>Choosing and validating the collective variable. Expect at least one restart.</td></tr>
+<tr><td>Markov state model</td><td>Weeks</td><td>Accumulating enough transition statistics, then defending the discretisation.</td></tr>
+<tr><td>QM/MM free-energy surface</td><td>Months</td><td>Compute, plus defending functional, QM-region size and boundary treatment to reviewers.</td></tr>
+</tbody>
+</table>
+</section>
+</div>

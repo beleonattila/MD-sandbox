@@ -1,0 +1,482 @@
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Molecular dynamics methods — a map</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Archivo:wght@400;500;600&family=Source+Serif+4:ital,opsz,wght@0,8..60,400;0,8..60,600;1,8..60,400&display=swap" rel="stylesheet">
+<style>
+:root{
+  --paper:#EDEFF0;
+  --panel:#F7F8F8;
+  --ink:#12171A;
+  --ink2:#4C5760;
+  --ink3:#7A858C;
+  --rule:#CDD4D7;
+  --rule2:#B3BDC2;
+
+  --classical:#2F6E8F;
+  --mlff:#1A7359;
+  --quantum:#5A3D8C;
+  --sampling:#4A5A63;
+  --disc:#96590F;
+  --gen:#96285A;
+
+  --sans:'Archivo', 'Helvetica Neue', Arial, sans-serif;
+  --serif:'Source Serif 4', Charter, Georgia, serif;
+}
+*{box-sizing:border-box}
+html{-webkit-print-color-adjust:exact;print-color-adjust:exact}
+body{
+  margin:0;
+  background:var(--paper);
+  color:var(--ink);
+  font-family:var(--sans);
+  font-size:14px;
+  line-height:1.45;
+  font-variant-numeric:tabular-nums;
+}
+.poster{max-width:1680px;margin:0 auto;padding:44px 40px 64px}
+
+/* ---------- masthead ---------- */
+.masthead{display:grid;grid-template-columns:1fr 380px;gap:48px;align-items:end;
+  border-bottom:3px solid var(--ink);padding-bottom:20px;margin-bottom:8px}
+h1{font-family:var(--serif);font-weight:600;font-size:58px;line-height:1.02;margin:0 0 10px;letter-spacing:-.015em}
+.dek{font-family:var(--serif);font-size:19px;line-height:1.5;color:var(--ink2);max-width:62ch;margin:0}
+.meta{font-size:12.5px;color:var(--ink3);line-height:1.6;border-left:2px solid var(--rule2);padding-left:14px}
+.meta b{font-weight:600;color:var(--ink2)}
+
+/* ---------- band scaffolding ---------- */
+.band{margin-top:52px}
+.band-head{display:flex;align-items:baseline;gap:18px;border-bottom:1px solid var(--ink);padding-bottom:8px;margin-bottom:22px}
+.band-head h2{font-family:var(--serif);font-size:30px;font-weight:600;margin:0;letter-spacing:-.01em}
+.band-head p{margin:0;font-size:14px;color:var(--ink2);max-width:72ch}
+
+/* ---------- generic card ---------- */
+.card{background:var(--panel);border:1px solid var(--rule);border-top:4px solid var(--rule2);padding:20px 22px 22px}
+.card h3{font-family:var(--serif);font-size:22px;font-weight:600;margin:0 0 2px;letter-spacing:-.01em}
+.card .tag{font-size:12.5px;color:var(--ink3);margin:0 0 14px}
+.card.classical{border-top-color:var(--classical)} .card.classical h3{color:var(--classical)}
+.card.mlff{border-top-color:var(--mlff)} .card.mlff h3{color:var(--mlff)}
+.card.quantum{border-top-color:var(--quantum)} .card.quantum h3{color:var(--quantum)}
+.card.disc{border-top-color:var(--disc)} .card.disc h3{color:var(--disc)}
+.card.gen{border-top-color:var(--gen)} .card.gen h3{color:var(--gen)}
+.card.samp{border-top-color:var(--sampling)} .card.samp h3{color:var(--sampling)}
+
+/* ---------- equations ---------- */
+.eq{font-family:var(--serif);font-size:16.5px;line-height:1.75;background:#fff;
+  border:1px solid var(--rule);padding:12px 14px;margin:0 0 14px;overflow-x:auto;white-space:nowrap}
+.eq.wrap{white-space:normal}
+.eq i{font-style:italic}
+.eq .note{display:block;font-family:var(--sans);font-size:11.5px;font-style:normal;color:var(--ink3);white-space:normal;margin-top:6px}
+
+/* ---------- spec list ---------- */
+.spec{margin:0 0 14px;border-top:1px solid var(--rule)}
+.spec div{display:grid;grid-template-columns:132px 1fr;gap:12px;padding:6px 0;border-bottom:1px solid var(--rule)}
+.spec dt{font-size:12px;color:var(--ink3);font-weight:500}
+.spec dd{margin:0;font-size:13px;color:var(--ink)}
+.spec dd code{font-family:var(--serif);font-size:14px}
+
+.verdict{display:grid;gap:10px}
+.verdict p{margin:0;font-size:13.5px;line-height:1.5;padding-left:12px;border-left:2px solid var(--rule2)}
+.verdict p b{font-weight:600;display:block;font-size:11.5px;color:var(--ink3);margin-bottom:2px}
+.verdict p.bn{border-left-color:#B0453B}
+.verdict p.bn b{color:#B0453B}
+
+/* ---------- grids ---------- */
+.g3{display:grid;grid-template-columns:repeat(3,1fr);gap:20px}
+.g4{display:grid;grid-template-columns:repeat(4,1fr);gap:18px}
+.g2{display:grid;grid-template-columns:repeat(2,1fr);gap:22px}
+
+/* ---------- ladder ---------- */
+.ladder{margin-top:22px;background:var(--panel);border:1px solid var(--rule);padding:20px 22px}
+.ladder h4{font-family:var(--serif);font-size:17px;font-weight:600;margin:0 0 14px}
+.rung{display:grid;grid-template-columns:150px 1fr 190px;gap:16px;align-items:center;padding:7px 0;border-bottom:1px solid var(--rule)}
+.rung:last-child{border-bottom:0}
+.rung .nm{font-size:13px;font-weight:500}
+.rung .bar{height:12px;background:#DFE4E6;position:relative}
+.rung .bar span{position:absolute;left:0;top:0;bottom:0}
+.rung .val{font-size:12px;color:var(--ink2);text-align:right}
+
+/* ---------- fork ---------- */
+.fork{margin:0 0 26px}
+.fork svg{width:100%;height:auto;display:block}
+
+/* ---------- approach cards (the generative modes) ---------- */
+.mode{background:#fff;border:1px solid var(--rule);border-left:3px solid var(--gen);padding:14px 16px}
+.mode.d{border-left-color:var(--disc)}
+.mode h4{font-family:var(--serif);font-size:18px;font-weight:600;margin:0 0 6px}
+.mode .sig{font-family:var(--serif);font-size:15px;background:var(--panel);border:1px solid var(--rule);
+  padding:6px 9px;margin:0 0 9px;display:block;overflow-x:auto;white-space:nowrap}
+.mode p{margin:0 0 8px;font-size:13px;line-height:1.5;color:var(--ink)}
+.mode ul{margin:0;padding-left:16px;font-size:12.5px;color:var(--ink2);line-height:1.6}
+.mode .tools{font-size:12px;color:var(--ink3);margin:9px 0 0;padding-top:8px;border-top:1px solid var(--rule)}
+
+/* ---------- matrix ---------- */
+table{width:100%;border-collapse:collapse;background:var(--panel);font-size:13px}
+th,td{text-align:left;padding:9px 12px;border-bottom:1px solid var(--rule);vertical-align:top}
+th{font-size:11.5px;color:var(--ink3);font-weight:500;border-bottom:1.5px solid var(--rule2)}
+td:first-child{font-weight:500;width:18%}
+td code{font-family:var(--serif);font-size:14px}
+
+.foot{margin-top:52px;border-top:3px solid var(--ink);padding-top:18px;
+  display:grid;grid-template-columns:1fr 1fr 1fr;gap:34px;font-size:12.5px;color:var(--ink2);line-height:1.6}
+.foot h5{font-family:var(--serif);font-size:15px;font-weight:600;margin:0 0 6px;color:var(--ink)}
+
+@media print{
+  @page{size:841mm 1189mm;margin:14mm}
+  .poster{max-width:none;padding:0}
+  .band{break-inside:avoid}
+}
+@media (max-width:1100px){
+  .g3,.g4,.g2{grid-template-columns:1fr}
+  .masthead{grid-template-columns:1fr}
+  h1{font-size:38px}
+}
+</style>
+
+<div class="poster">
+
+<header class="masthead">
+  <div>
+    <h1>Molecular dynamics: a map of the methods</h1>
+    <p class="dek">Every method on this poster is an approximation to the same object — the Boltzmann distribution over configurations, and the observables you get by averaging over it. They differ in how they compute the energy, how they sample, and, in the newest branch, whether they simulate at all.</p>
+  </div>
+  <div class="meta">
+    <b>Figures are order-of-magnitude.</b> Throughput assumes one modern datacentre GPU or one CPU node; real numbers move by 10× with system size, cutoffs and hardware.<br><br>
+    <b>Parameter and dataset sizes</b> are the published scale of representative models, not exact counts.<br><br>
+    <b>Compiled September 2026.</b> The learned-surrogate half of this map is under a year old and will date fastest.
+  </div>
+</header>
+
+<section class="band">
+  <div class="band-head">
+    <h2>What all of it is approximating</h2>
+    <p>Fix this first — the taxonomy below is just different attacks on these three lines.</p>
+  </div>
+  <div class="g3">
+    <div class="card">
+      <h3>The distribution</h3>
+      <p class="tag">What a protein actually is at <i>T</i> &gt; 0</p>
+      <div class="eq"><i>p</i>(<b>x</b>) = <i>e</i><sup>−<i>U</i>(<b>x</b>)/<i>k</i><sub>B</sub><i>T</i></sup> / <i>Z</i>,&nbsp;&nbsp; <i>Z</i> = ∫ <i>e</i><sup>−<i>U</i>(<b>x</b>)/<i>k</i><sub>B</sub><i>T</i></sup> d<b>x</b>
+      <span class="note">A crystal structure or an AlphaFold model is roughly the mode of <i>p</i>. States at 5%, 1%, 0.1% are not absent, only invisible.</span></div>
+    </div>
+    <div class="card">
+      <h3>The observable</h3>
+      <p class="tag">What you actually measure</p>
+      <div class="eq">⟨<i>A</i>⟩ = ∫ <i>A</i>(<b>x</b>) <i>p</i>(<b>x</b>) d<b>x</b> ≈ (1/<i>M</i>) Σ<sub><i>t</i></sub> <i>A</i>(<b>x</b><sub><i>t</i></sub>)
+      <span class="note">The ergodic swap of an ensemble average for a time average is the entire justification for running a trajectory. It only holds if you sampled long enough.</span></div>
+    </div>
+    <div class="card">
+      <h3>The gap that matters</h3>
+      <p class="tag">Why function lives in the tails</p>
+      <div class="eq"><i>k</i><sub>cat</sub> ∝ <i>e</i><sup>−Δ<i>G</i><sup>‡</sup>/<i>k</i><sub>B</sub><i>T</i></sup>,&nbsp;&nbsp; Δ<i>G</i> = −<i>k</i><sub>B</sub><i>T</i> ln(<i>Z</i><sub>B</sub>/<i>Z</i><sub>A</sub>)
+      <span class="note">Rates depend on free-energy <i>differences</i>, so a 1.4 kcal/mol error is a 10× error in rate. This is why "1 kcal/mol" is the accuracy bar quoted everywhere below.</span></div>
+    </div>
+  </div>
+</section>
+
+<section class="band">
+  <div class="band-head">
+    <h2>Layer 1 — three ways to get the energy and the forces</h2>
+    <p>Classical, machine-learned, quantum. Everything else in the field sits downstream of this choice.</p>
+  </div>
+
+  <div class="g3">
+
+    <div class="card classical">
+      <h3>Classical force fields</h3>
+      <p class="tag">Empirical potential, fixed bonding, fixed charges</p>
+      <div class="eq wrap"><i>U</i> = Σ<sub>b</sub> <i>k</i><sub>b</sub>(<i>b</i>−<i>b</i><sub>0</sub>)² + Σ<sub>θ</sub> <i>k</i><sub>θ</sub>(<i>θ</i>−<i>θ</i><sub>0</sub>)² + Σ<sub>φ</sub> Σ<sub>n</sub> (<i>V</i><sub>n</sub>/2)[1+cos(<i>nφ</i>−<i>γ</i>)]<br>
+      &nbsp;&nbsp;&nbsp;&nbsp;+ Σ<sub><i>i</i>&lt;<i>j</i></sub> { 4<i>ε</i><sub><i>ij</i></sub>[(<i>σ</i>/<i>r</i>)<sup>12</sup>−(<i>σ</i>/<i>r</i>)<sup>6</sup>] + <i>q</i><sub><i>i</i></sub><i>q</i><sub><i>j</i></sub>/4π<i>ε</i><sub>0</sub><i>r</i><sub><i>ij</i></sub> }
+      <span class="note">Integrated with velocity Verlet: <i>m<sub>i</sub></i> <b>r̈</b><sub><i>i</i></sub> = −∇<sub><i>i</i></sub><i>U</i>. Long-range Coulomb by particle mesh Ewald.</span></div>
+      <dl class="spec">
+        <div><dt>Parameters</dt><dd>~10³–10⁴ fitted constants (atom types, bonded terms, LJ pairs, partial charges)</dd></div>
+        <div><dt>Fitted to</dt><dd>QM energies of small fragments + condensed-phase experiment (densities, Δ<i>H</i><sub>vap</sub>, hydration free energies)</dd></div>
+        <div><dt>Data volume</dt><dd>~10³–10⁵ reference values; decades of hand curation</dd></div>
+        <div><dt>Data type</dt><dd>Scalar thermodynamic targets, torsion scans, dimer curves</dd></div>
+        <div><dt>Cost scaling</dt><dd><code>O(N log N)</code> with PME</dd></div>
+        <div><dt>Timestep</dt><dd>2 fs with H-bond constraints; 4 fs with hydrogen mass repartitioning</dd></div>
+        <div><dt>Throughput</dt><dd>~10²–10³ ns/day for 10⁵ atoms, single GPU</dd></div>
+        <div><dt>Reach</dt><dd>10⁴–10⁷ atoms · ns to µs (ms on Anton-class hardware)</dd></div>
+        <div><dt>Tools</dt><dd>GROMACS, AMBER, OpenMM, NAMD, Desmond · ff19SB/OPC, CHARMM36m, OPLS4, OpenFF Sage, Espaloma</dd></div>
+      </dl>
+      <div class="verdict">
+        <p><b>Suits</b>Solvation and membrane behaviour, complex stability, loop and side-chain flexibility, alchemical free energies, MD refinement of docked poses, cryptic pocket opening if you are lucky.</p>
+        <p class="bn"><b>Bottleneck</b>Two independent walls. Sampling: the transitions you care about are often 10³–10⁶× longer than what you can run. Accuracy: residual force-field error near 0.5–1 kcal/mol does not shrink with more sampling. No bond breaking, no electronic polarisation.</p>
+      </div>
+    </div>
+
+    <div class="card mlff">
+      <h3>Machine-learned force fields</h3>
+      <p class="tag">Regress the QM potential energy surface, then use it as a potential</p>
+      <div class="eq wrap"><i>E</i>(<b>x</b>) = Σ<sub><i>i</i></sub> <i>E</i><sub><i>i</i></sub>(<i>h</i><sub><i>i</i></sub>),&nbsp; <i>h</i><sub><i>i</i></sub> = message passing over neighbours within <i>r</i><sub>cut</sub><br>
+      <i>E</i>(<i>R</i><b>x</b>+<b>t</b>) = <i>E</i>(<b>x</b>),&nbsp;&nbsp; <b>F</b> = −∂<i>E</i>/∂<b>x</b> &nbsp;(equivariant by construction)<br>
+      ℒ = <i>λ</i><sub>E</sub>‖<i>E</i>−<i>Ê</i>‖² + <i>λ</i><sub>F</sub> Σ<sub><i>i</i></sub>‖<b>F</b><sub><i>i</i></sub>−<b>F̂</b><sub><i>i</i></sub>‖²
+      <span class="note">Forces come from autodiff of the predicted energy, so energy conservation is structural rather than fitted.</span></div>
+      <dl class="spec">
+        <div><dt>Parameters</dt><dd>10⁵–10⁷ (MACE-OFF, AIMNet2, NequIP/Allegro) · 10⁸–10⁹ (foundation potentials: UMA, Orb)</dd></div>
+        <div><dt>Fitted to</dt><dd>DFT (usually ωB97M-D3 or PBE-class) energies and forces</dd></div>
+        <div><dt>Data volume</dt><dd>10⁵–10⁸ labelled configurations. SPICE ≈ 10⁶ drug-like molecules; open catalysis/molecular sets reach 10⁸</dd></div>
+        <div><dt>Data type</dt><dd>Coordinates → energy + per-atom force vectors (increasingly + charges, dipoles, stress)</dd></div>
+        <div><dt>Cost scaling</dt><dd><code>O(N)</code> in atoms, but 10²–10³× classical MM per step</dd></div>
+        <div><dt>Throughput</dt><dd>~0.1–10 ns/day for 10³–10⁴ atoms; 10³–10⁶× cheaper than the DFT it replaces</dd></div>
+        <div><dt>Tools</dt><dd>MACE-OFF, MACE-polar-1, AIMNet2, Egret-1, FeNNix-Bio1, AceFF, Orb, UMA · ASE, OpenMM-ML, TorchMD-Net</dd></div>
+      </dl>
+      <div class="verdict">
+        <p><b>Suits</b>Reactive chemistry at near-QM accuracy, active-site energetics inside an ML/MM partition, small-molecule conformer energies and torsion profiles, systems where a classical force field has no parameters (metals, cofactors, non-canonical residues).</p>
+        <p class="bn"><b>Bottleneck</b>Out-of-distribution silence — the model returns a confident number for configurations unlike anything it saw, with no built-in warning. Long-range electrostatics were absent until the 2025–26 polarisable and charge-aware models. Whole protein in explicit water, fully ML, is still not routine.</p>
+      </div>
+    </div>
+
+    <div class="card quantum">
+      <h3>Quantum and QM/MM</h3>
+      <p class="tag">Solve for the electrons; the only branch where chemistry can happen</p>
+      <div class="eq wrap">Ĥ<sub>e</sub>Ψ(<b>r</b>;<b>R</b>) = <i>E</i><sub>e</sub>(<b>R</b>)Ψ &nbsp;(Born–Oppenheimer)<br>
+      DFT: <i>E</i>[<i>ρ</i>] = <i>T</i><sub>s</sub>[<i>ρ</i>] + <i>E</i><sub>ext</sub>[<i>ρ</i>] + <i>E</i><sub>H</sub>[<i>ρ</i>] + <i>E</i><sub>xc</sub>[<i>ρ</i>]<br>
+      QM/MM: Ĥ = Ĥ<sub>QM</sub> + Ĥ<sub>MM</sub> + Ĥ<sub>QM/MM</sub>
+      <span class="note">Empirical valence bond replaces the wavefunction with coupled diabatic states — far cheaper, and the framework in which electrostatic preorganisation was quantified.</span></div>
+      <dl class="spec">
+        <div><dt>Parameters</dt><dd>None for wavefunction methods; a hybrid or range-separated functional carries ~5–30 empirical constants</dd></div>
+        <div><dt>Fitted to</dt><dd>Nothing, or benchmark reaction/interaction energy sets for functional development</dd></div>
+        <div><dt>Data volume</dt><dd>Not applicable — this is the method that <i>generates</i> the data for the column to its left</dd></div>
+        <div><dt>Cost scaling</dt><dd>DFT <code>O(N³)</code> · MP2 <code>O(N⁵)</code> · CCSD(T) <code>O(N⁷)</code> in basis functions</dd></div>
+        <div><dt>Throughput</dt><dd>~1–10 ps/day of AIMD for 10²–10³ atoms on a full node. A converged QM/MM free-energy surface is a 10⁵–10⁶ core-hour project.</dd></div>
+        <div><dt>Reach</dt><dd>10¹–10³ QM atoms · fs to ps</dd></div>
+        <div><dt>Tools</dt><dd>CP2K, ORCA, Q-Chem, Gaussian, Psi4 · ONIOM and electrostatic embedding · Q (EVB)</dd></div>
+      </dl>
+      <div class="verdict">
+        <p><b>Suits</b>Bond making and breaking, transition-state geometry and Δ<i>G</i><sup>‡</sup>, metal and radical centres, proton transfer, spectroscopic observables, generating training labels for MLFFs.</p>
+        <p class="bn"><b>Bottleneck</b>Cost forbids sampling. You obtain a few reaction paths, not an ensemble, so the number you report is conditioned on a starting structure you chose. Add functional dependence, QM-region size convergence and boundary artefacts — all of which reviewers will contest.</p>
+      </div>
+    </div>
+  </div>
+
+  <div class="ladder">
+    <h4>The accuracy–cost ladder, per atom per step</h4>
+    <div class="rung"><span class="nm">Coarse-grained</span><span class="bar"><span style="width:2%;background:#8FA6AE"></span></span><span class="val">~0.01× MM · µs–ms, 10⁶ beads</span></div>
+    <div class="rung"><span class="nm">Classical MM</span><span class="bar"><span style="width:8%;background:#2F6E8F"></span></span><span class="val">reference · ns–µs, 10⁵ atoms</span></div>
+    <div class="rung"><span class="nm">Polarisable MM</span><span class="bar"><span style="width:18%;background:#3F7C99"></span></span><span class="val">~5–10× MM · AMOEBA, Drude</span></div>
+    <div class="rung"><span class="nm">Machine-learned FF</span><span class="bar"><span style="width:42%;background:#1A7359"></span></span><span class="val">~10²–10³× MM · ps–ns, 10³ atoms</span></div>
+    <div class="rung"><span class="nm">Semi-empirical QM</span><span class="bar"><span style="width:62%;background:#7B5FA8"></span></span><span class="val">~10⁴× MM · GFN2-xTB, DFTB</span></div>
+    <div class="rung"><span class="nm">DFT</span><span class="bar"><span style="width:84%;background:#5A3D8C"></span></span><span class="val">~10⁶× MM · fs–ps, 10² atoms</span></div>
+    <div class="rung"><span class="nm">Coupled cluster</span><span class="bar"><span style="width:100%;background:#3D2761"></span></span><span class="val">~10⁹× MM · single points only</span></div>
+  </div>
+</section>
+
+<section class="band">
+  <div class="band-head">
+    <h2>Layer 2 — turning forces into ensembles</h2>
+    <p>Having a potential is not having a distribution. These are the three things you can do with one.</p>
+  </div>
+  <div class="g3">
+    <div class="card samp">
+      <h3>Unbiased forward integration</h3>
+      <p class="tag">Let the physics run and hope it is ergodic</p>
+      <div class="eq wrap"><b>x</b>(<i>t</i>+Δ<i>t</i>) = <b>x</b>(<i>t</i>) + <b>v</b>Δ<i>t</i> + (<b>F</b>/2<i>m</i>)Δ<i>t</i>²<br>
+      Langevin: <i>m</i><b>v̇</b> = <b>F</b> − <i>γm</i><b>v</b> + √(2<i>γm k</i><sub>B</sub><i>T</i>) <b>η</b>(<i>t</i>)</div>
+      <div class="verdict">
+        <p><b>Suits</b>Local fluctuation, RMSF, contact lifetimes, water structure, anything whose relaxation time is shorter than your trajectory.</p>
+        <p class="bn"><b>Bottleneck</b>Exponential in barrier height. A 12 kcal/mol barrier at 300 K is ~10⁻³ s — unreachable. Also: convergence is not observable from a single run, so "it looked converged" is not evidence.</p>
+      </div>
+    </div>
+    <div class="card samp">
+      <h3>Enhanced sampling and free energy</h3>
+      <p class="tag">Bias along a coordinate, then remove the bias</p>
+      <div class="eq wrap">Metadynamics: <i>V</i>(<i>s</i>,<i>t</i>) = Σ<sub><i>t</i>'&lt;<i>t</i></sub> <i>W</i> exp[−(<i>s</i>−<i>s</i>(<i>t</i>'))²/2<i>σ</i>²]<br>
+      TI: Δ<i>G</i> = ∫<sub>0</sub><sup>1</sup> ⟨∂<i>U</i>/∂<i>λ</i>⟩<sub><i>λ</i></sub> d<i>λ</i> &nbsp;·&nbsp; FEP: Δ<i>G</i> = −<i>k</i><sub>B</sub><i>T</i> ln⟨<i>e</i><sup>−Δ<i>U</i>/<i>k</i><sub>B</sub><i>T</i></sup>⟩</div>
+      <div class="verdict">
+        <p><b>Suits</b>Δ<i>G</i> of binding, ΔΔ<i>G</i> of mutation, conformational free-energy surfaces, ligand unbinding paths. OPES has largely replaced well-tempered metadynamics as the default adaptive bias.</p>
+        <p class="bn"><b>Bottleneck</b>The collective variable. Bias the wrong coordinate and you gain nothing while appearing to converge. Learned CVs (Deep-TICA, VAMPnets, autoencoders) are the current answer and are themselves discriminative models — see below.</p>
+      </div>
+    </div>
+    <div class="card samp">
+      <h3>Kinetic model building</h3>
+      <p class="tag">Many short runs → one kinetic object</p>
+      <div class="eq wrap"><b>p</b>(<i>t</i>+<i>τ</i>) = <b>T</b>(<i>τ</i>)<sup>⊤</sup><b>p</b>(<i>t</i>),&nbsp;&nbsp; <i>t</i><sub><i>i</i></sub> = −<i>τ</i>/ln <i>λ</i><sub><i>i</i></sub>
+      <span class="note">Discretise, count transitions, diagonalise. The eigenvalues are relaxation timescales; the eigenvectors are the slow processes.</span></div>
+      <div class="verdict">
+        <p><b>Suits</b>Rates, pathways, state populations, mechanism. Recovers timescales longer than any individual trajectory. Also the machinery that reweights biased or short MD into Boltzmann-correct training data for generative models.</p>
+        <p class="bn"><b>Bottleneck</b>Needs enough transition statistics in the first place, and the discretisation is a modelling choice that changes the answer. Implied-timescale convergence is a diagnostic, not a proof.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section class="band">
+  <div class="band-head">
+    <h2>Layer 3 — the machine learning split</h2>
+    <p>Both halves are trained on simulation output. The difference is what they output: a number about a structure, or a structure.</p>
+  </div>
+
+  <div class="fork">
+    <svg viewBox="0 0 1600 210" xmlns="http://www.w3.org/2000/svg">
+      <rect x="620" y="10" width="360" height="52" fill="#F7F8F8" stroke="#B3BDC2"/>
+      <text x="800" y="34" text-anchor="middle" font-family="Source Serif 4, Georgia, serif" font-size="19" fill="#12171A">Learned models over molecular data</text>
+      <text x="800" y="52" text-anchor="middle" font-family="Archivo, sans-serif" font-size="12.5" fill="#7A858C">trained on MD frames, QM labels, structures, experimental thermodynamics</text>
+
+      <path d="M800 62 L800 88 L360 88 L360 118" fill="none" stroke="#96590F" stroke-width="1.5"/>
+      <path d="M800 62 L800 88 L1240 88 L1240 118" fill="none" stroke="#96285A" stroke-width="1.5"/>
+
+      <rect x="120" y="118" width="480" height="76" fill="#FFF" stroke="#96590F" stroke-width="2"/>
+      <text x="360" y="144" text-anchor="middle" font-family="Source Serif 4, Georgia, serif" font-size="21" fill="#96590F">Discriminative</text>
+      <text x="360" y="167" text-anchor="middle" font-family="Source Serif 4, Georgia, serif" font-size="17" fill="#12171A">learn p(y | x) — map a structure to a number</text>
+      <text x="360" y="185" text-anchor="middle" font-family="Archivo, sans-serif" font-size="12.5" fill="#7A858C">min ℒ(f(x), y) · you must already have x</text>
+
+      <rect x="1000" y="118" width="480" height="76" fill="#FFF" stroke="#96285A" stroke-width="2"/>
+      <text x="1240" y="144" text-anchor="middle" font-family="Source Serif 4, Georgia, serif" font-size="21" fill="#96285A">Generative</text>
+      <text x="1240" y="167" text-anchor="middle" font-family="Source Serif 4, Georgia, serif" font-size="17" fill="#12171A">learn p(x) or p(x | c) — produce structures</text>
+      <text x="1240" y="185" text-anchor="middle" font-family="Archivo, sans-serif" font-size="12.5" fill="#7A858C">max log p(x) · the sampler is the model</text>
+    </svg>
+  </div>
+
+  <div class="g2">
+    <div>
+      <div class="card disc" style="margin-bottom:18px">
+        <h3>Discriminative: five jobs</h3>
+        <p class="tag">Objective: minimise E[ℒ(<i>f<sub>θ</sub></i>(<b>x</b>), <i>y</i>)] over labelled pairs</p>
+        <dl class="spec">
+          <div><dt>Params</dt><dd>10⁵–10⁹ depending on the job</dd></div>
+          <div><dt>Data type</dt><dd>(structure or sequence, scalar or vector label)</dd></div>
+          <div><dt>Shared failure</dt><dd>Interpolates the training landscape. Learns correlation, not mechanism, so transfer to a new scaffold is unreliable.</dd></div>
+        </dl>
+      </div>
+
+      <div style="display:grid;gap:14px">
+        <div class="mode d">
+          <h4>Energy and force regression</h4>
+          <span class="sig"><b>x</b> ∈ ℝ<sup>3N</sup> → <i>E</i> ∈ ℝ, <b>F</b> ∈ ℝ<sup>3N</sup></span>
+          <p>The MLFF column of layer 1 is a discriminative model. It happens to be plugged into a physics integrator afterwards, which is what makes it feel like simulation.</p>
+          <p class="tools">MACE-OFF · AIMNet2 · NequIP · Allegro · UMA · Orb</p>
+        </div>
+        <div class="mode d">
+          <h4>Property and fitness prediction</h4>
+          <span class="sig">sequence or structure → ΔΔ<i>G</i>, <i>T</i><sub>m</sub>, <i>K</i><sub>d</sub>, activity</span>
+          <p>The workhorse of ML-guided directed evolution. Zero-shot from a protein language model, or supervised on a few hundred measured variants with uncertainty for acquisition.</p>
+          <ul><li>Zero-shot: ESM log-odds, EVE, GEMME</li><li>Supervised low-<i>N</i>: ridge/GP on embeddings</li><li>Structure-aware: ThermoMPNN, stability oracles</li></ul>
+          <p class="tools">Bottleneck: assay noise and epistasis. A model fit on one landscape rarely ranks a new one.</p>
+        </div>
+        <div class="mode d">
+          <h4>Collective variable and slow-mode learning</h4>
+          <span class="sig">trajectory → <i>s</i>(<b>x</b>) maximising autocorrelation at lag <i>τ</i></span>
+          <p>Finds the coordinate that enhanced sampling should bias. VAMPnets solve the variational problem for the transfer operator directly; TICA is its linear special case.</p>
+          <p class="tools">TICA · Deep-TICA · VAMPnets · SRVs · state-free reversible VAMPnets</p>
+        </div>
+        <div class="mode d">
+          <h4>Committor and transition classification</h4>
+          <span class="sig"><b>x</b> → <i>p</i><sub>B</sub>(<b>x</b>) ∈ [0,1]</span>
+          <p>The committor is the ideal reaction coordinate — the probability of reaching state B before A. Learning it directly sidesteps the CV-guessing problem entirely.</p>
+          <p class="tools">Neural committor networks · transition path sampling with learned committors</p>
+        </div>
+        <div class="mode d">
+          <h4>Uncertainty and out-of-distribution detection</h4>
+          <span class="sig"><b>x</b> → <i>σ</i>(<b>x</b>), "should you trust this prediction"</span>
+          <p>The safety layer for everything above. Ensemble disagreement, Gaussian-process variance, or a learned probe on internal representations. Necessary because an MLFF fails silently.</p>
+          <p class="tools">Deep ensembles · GP/BNN posteriors · latent-space probes</p>
+        </div>
+      </div>
+    </div>
+
+    <div>
+      <div class="card gen" style="margin-bottom:18px">
+        <h3>Generative: six conditioning patterns</h3>
+        <p class="tag">Objective: max E[log <i>p<sub>θ</sub></i>(<b>x</b>)] or match a score / velocity field</p>
+        <div class="eq wrap">Diffusion: d<b>x</b> = <i>f</i>(<b>x</b>,<i>t</i>)d<i>t</i> + <i>g</i>(<i>t</i>)d<b>w</b>, learn <i>s<sub>θ</sub></i> ≈ ∇<sub><b>x</b></sub>log <i>p<sub>t</sub></i>(<b>x</b>)<br>
+        Flow matching: d<b>x</b>/d<i>t</i> = <i>v<sub>θ</sub></i>(<b>x</b>,<i>t</i>), ℒ = E‖<i>v<sub>θ</sub></i> − <i>u<sub>t</sub></i>‖²<br>
+        Normalizing flow: log <i>p</i>(<b>x</b>) = log <i>p<sub>Z</sub></i>(<i>f</i>(<b>x</b>)) + log|det ∂<i>f</i>/∂<b>x</b>|
+        <span class="note">Only the flow gives a tractable likelihood, which is what lets a Boltzmann generator reweight to the <i>exact</i> target: <i>w</i>(<b>x</b>) = <i>e</i><sup>−<i>U</i>(<b>x</b>)/<i>k</i><sub>B</sub><i>T</i></sup> / <i>p<sub>θ</sub></i>(<b>x</b>). Diffusion and flow-matching models are emulators of their training distribution, not of the Boltzmann distribution.</span></div>
+        <dl class="spec">
+          <div><dt>Params</dt><dd>10⁷–10⁸ typical (AlphaFold-derived trunks dominate)</dd></div>
+          <div><dt>Training data</dt><dd>Aggregated MD frames (BioEmu integrates &gt;200 ms of simulation), the PDB/AFDB, mega-scale stability measurements</dd></div>
+          <div><dt>Data type</dt><dd>Coordinate sets, optionally with time index and MSM-derived equilibrium weights</dd></div>
+          <div><dt>Throughput</dt><dd>10³ independent structures per hour on one GPU — roughly 10⁵× the cost-per-sample advantage over explicit MD</dd></div>
+        </dl>
+      </div>
+
+      <div style="display:grid;gap:14px">
+        <div class="mode">
+          <h4>1 · Forward simulation (learned propagator)</h4>
+          <span class="sig"><b>x</b><sub><i>t</i></sub> → <b>x</b><sub><i>t</i>+<i>τ</i></sub> ~ <i>p</i>(<b>x</b><sub><i>t</i>+<i>τ</i></sub> | <b>x</b><sub><i>t</i></sub>)</span>
+          <p>Replace the integrator, not the force field. Learn the transition density at a lag <i>τ</i> far larger than a physical timestep, then roll it out. Keeps a time axis, so kinetics survive.</p>
+          <ul><li>Trained on short MD at fixed lag</li><li>Error compounds over rollout — the central risk</li></ul>
+          <p class="tools">Timewarp · implicit transfer operators · Score Dynamics · MDGen (forward mode)</p>
+        </div>
+
+        <div class="mode">
+          <h4>2 · i.i.d. ensemble sampling</h4>
+          <span class="sig">sequence → {<b>x</b><sub>1</sub> … <b>x</b><sub><i>M</i></sub>} ~ <i>p</i>(<b>x</b>)</span>
+          <p>No time axis at all. Draw statistically independent structures directly from the learned equilibrium distribution. This is the branch that reports ~1 kcal/mol relative free energies against millisecond MD, and it captures cryptic pockets, local unfolding and domain rearrangement.</p>
+          <ul><li>Gives populations, not rates</li><li>Generalisation beyond the training MD is the open question</li></ul>
+          <p class="tools">BioEmu · AlphaFlow / ESMFlow · DiG · ConfDiff · BBFlow · DiffEnsemble</p>
+        </div>
+
+        <div class="mode">
+          <h4>3 · Trajectory generation</h4>
+          <span class="sig">condition <i>c</i> → (<b>x</b><sub>1</sub>, …, <b>x</b><sub><i>T</i></sub>) jointly</span>
+          <p>Generate the whole time series in one shot rather than stepping. Because the model sees the full trajectory as a single object, it can be conditioned anywhere along it — which is what makes modes 4–6 possible with the same weights.</p>
+          <ul><li>Currently demonstrated on peptides, not large proteins</li><li>Fixed trajectory length is a real architectural constraint</li></ul>
+          <p class="tools">MDGen · state-space trajectory models · latent-space dynamics emulators</p>
+        </div>
+
+        <div class="mode">
+          <h4>4 · Interpolation (transition paths)</h4>
+          <span class="sig">(<b>x</b><sub>A</sub>, <b>x</b><sub>B</sub>) → path between them</span>
+          <p>Both endpoints are clamped and the model fills the middle. This is the generative answer to transition path sampling: you know the open and closed states, you want the mechanism and the barrier region, and you do not want to guess a reaction coordinate first.</p>
+          <ul><li>Paths are plausible, not necessarily Boltzmann-weighted</li><li>Needs a committor or reweighting step for a real rate</li></ul>
+          <p class="tools">MDGen interpolation · Doob's <i>h</i>-transform samplers · generative TPS</p>
+        </div>
+
+        <div class="mode">
+          <h4>5 · Upsampling</h4>
+          <span class="sig">temporal: {<b>x</b><sub>0</sub>, <b>x</b><sub><i>k</i></sub>, <b>x</b><sub>2<i>k</i></sub>} → every frame<br>spatial: CG beads → all atoms</span>
+          <p>Two distinct problems with the same shape. Temporal upsampling recovers the frames you did not save. Spatial upsampling — backmapping — restores atomistic detail to a coarse-grained trajectory, which makes the CG/AA round trip usable rather than one-way.</p>
+          <ul><li>Backmapping is the missing half of every MARTINI workflow</li><li>Recovered detail is a conditional sample, not the truth</li></ul>
+          <p class="tools">MDGen upsampling · GenZProt · DiAMoNDBack · backmapping flows</p>
+        </div>
+
+        <div class="mode">
+          <h4>6 · Inpainting (masked design)</h4>
+          <span class="sig"><b>x</b><sub>known</sub> → <b>x</b><sub>masked</sub> | <b>x</b><sub>known</sub></span>
+          <p>Freeze part of the structure, regenerate the rest. Structurally identical to motif scaffolding in de novo design, which is why the same diffusion machinery serves both. Applied to trajectories it becomes conditional dynamics: fix a binding-site geometry, ask what the rest of the protein does.</p>
+          <ul><li>Loop and disordered-region modelling</li><li>Motif scaffolding, active-site retention, ncAA pocket completion</li><li>Open question: how far the conditioning propagates before it stops constraining anything</li></ul>
+          <p class="tools">MDGen inpainting · RFdiffusion motif scaffolding · partial-diffusion conditioning</p>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section class="band">
+  <div class="band-head">
+    <h2>Where each branch actually breaks</h2>
+    <p>The distinction worth holding: a sampling bottleneck is fixed by more compute, an accuracy bottleneck is not.</p>
+  </div>
+  <table>
+    <thead><tr><th>Branch</th><th>Binding constraint</th><th>Type</th><th>What would actually move it</th></tr></thead>
+    <tbody>
+      <tr><td>Classical MD</td><td>Barrier crossing is exponential in Δ<i>G</i><sup>‡</sup>; residual force-field error ~0.5–1 kcal/mol</td><td>Both</td><td>Enhanced sampling for the first; better functional forms — polarisable or ML — for the second</td></tr>
+      <tr><td>Enhanced sampling</td><td>Choice of collective variable</td><td>Representation</td><td>Learned CVs and committor networks; OPES tolerates a mediocre CV better than metadynamics did</td></tr>
+      <tr><td>Coarse-grained</td><td>Chemistry is gone; protein–protein interactions systematically over-sticky</td><td>Accuracy</td><td>Bottom-up reparameterisation, and generative backmapping to recover atomistic detail on demand</td></tr>
+      <tr><td>QM / QM/MM</td><td><code>O(N³)</code>–<code>O(N⁷)</code> cost forbids ensemble sampling</td><td>Compute</td><td>MLFFs trained on QM, used as the QM region's surrogate</td></tr>
+      <tr><td>MLFF</td><td>Silent extrapolation failure; long-range electrostatics</td><td>Accuracy</td><td>Uncertainty-gated active learning; the 2026 polarisable and charge-aware foundation models</td></tr>
+      <tr><td>Discriminative ML</td><td>Learns a landscape, not a principle; does not transfer across scaffolds</td><td>Representation</td><td>Physics-grounded features, or targets defined on ensembles rather than single structures</td></tr>
+      <tr><td>Generative ensembles</td><td>No time axis, so no rates; fidelity outside the training MD is unproven</td><td>Representation + data</td><td>Trajectory-level models with a real propagator; broader MD training corpora than ATLAS</td></tr>
+    </tbody>
+  </table>
+</section>
+
+<div class="foot">
+  <div>
+    <h5>How to read the split</h5>
+    An MLFF and a diffusion ensemble model are both neural networks trained on MD, and they are commonly discussed together. They are opposites. The MLFF is discriminative and keeps the physics — you still integrate equations of motion, so you keep kinetics, transferability and the ability to add a ligand or a membrane. The ensemble model is generative and discards the physics — you gain 10⁵ in throughput and lose the time axis.
+  </div>
+  <div>
+    <h5>The honest ceiling</h5>
+    Ranking enzyme variants by activity requires ΔΔ<i>G</i><sup>‡</sup> to roughly 1 kcal/mol. Alchemical FEP reaches that for stability and binding on good systems. Generative ensemble models now reach it for relative conformational free energies. Nothing on this poster reaches it for a catalytic barrier at throughput — that still requires QM/MM or EVB, one system at a time.
+  </div>
+  <div>
+    <h5>Sources and dating</h5>
+    Equations are standard. Scale figures are drawn from the primary method papers: MACE-OFF (JACS 2024), AIMNet2 (Chem. Sci. 2025), BioEmu (Science 2025), AlphaFlow (2024), MDGen (2024), and the JCTC 2026 pretrained-MLIP benchmark. The generative half of this map is moving fast enough that the tool names, not the structure, are what will need replacing first.
+  </div>
+</div>
+
+</div>

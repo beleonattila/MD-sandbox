@@ -1,0 +1,9 @@
+runs/
+*.xtc
+*.dcd
+*.nc
+*.chk
+__pycache__/
+.ipynb_checkpoints/
+env/*.lock.yml.bak
+.env
