@@ -1,0 +1,273 @@
+<!doctype html>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>mdbench Ladder</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Archivo:wght@400;500;600;700&family=Source+Serif+4:opsz,wght@8..60,400;8..60,600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+/* Layout: one reading column; the ladder matrix is the centrepiece, then cost scale, systems, branch detail. Palette and faces follow the repo's methods poster. */
+:root{
+  --paper:#EDEFF0; --panel:#F7F8F8; --ink:#12171A; --ink2:#4C5760; --ink3:#6E7980;
+  --rule:#CDD4D7; --rule2:#B3BDC2;
+  --A:#2F6E8F; --B:#1A7359; --C:#5A3D8C; --D:#9A5B12;
+  --Atint:#DCE8EE; --Btint:#D8EBE4; --Ctint:#E4DDEF; --Dtint:#F1E4D2;
+  --sans:'Archivo','Helvetica Neue',Arial,sans-serif;
+  --serif:'Source Serif 4',Georgia,'Times New Roman',serif;
+  --mono:'JetBrains Mono',ui-monospace,'SFMono-Regular',Menlo,monospace;
+}
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]){
+    color-scheme:dark;
+    --paper:#111518; --panel:#192024; --ink:#E6EBED; --ink2:#AAB5BB; --ink3:#86929A;
+    --rule:#2B353B; --rule2:#3B474E;
+    --A:#6FAED0; --B:#5FC0A0; --C:#AE93DE; --D:#E0A35A;
+    --Atint:#1B2C35; --Btint:#18302A; --Ctint:#26203A; --Dtint:#33271A;
+  }
+}
+:root[data-theme="dark"]{
+  color-scheme:dark;
+  --paper:#111518; --panel:#192024; --ink:#E6EBED; --ink2:#AAB5BB; --ink3:#86929A;
+  --rule:#2B353B; --rule2:#3B474E;
+  --A:#6FAED0; --B:#5FC0A0; --C:#AE93DE; --D:#E0A35A;
+  --Atint:#1B2C35; --Btint:#18302A; --Ctint:#26203A; --Dtint:#33271A;
+}
+*{box-sizing:border-box}
+body{background:var(--paper);color:var(--ink);font-family:var(--serif);font-size:17px;line-height:1.6;padding:0 20px}
+.wrap{max-width:1040px;margin:0 auto;padding-block:48px 72px;display:flex;flex-direction:column;gap:56px}
+h1,h2,h3{font-family:var(--sans);text-wrap:balance;margin:0;line-height:1.15}
+h1{font-size:clamp(2rem,5vw,3rem);font-weight:700;letter-spacing:-.02em}
+h2{font-size:1.5rem;font-weight:600;letter-spacing:-.01em}
+h3{font-size:1.05rem;font-weight:600}
+p{margin:0;max-width:66ch}
+.eyebrow{font-family:var(--sans);font-size:.75rem;letter-spacing:.12em;text-transform:uppercase;color:var(--ink3);font-weight:600}
+.lede{font-size:1.2rem;color:var(--ink2)}
+section{display:flex;flex-direction:column;gap:18px}
+.intro{display:flex;flex-direction:column;gap:16px}
+.thesis{border-left:3px solid var(--ink);padding:4px 0 4px 18px;font-size:1.15rem;font-style:italic;max-width:60ch}
+.mono{font-family:var(--mono);font-size:.85em}
+.note{font-family:var(--sans);font-size:.85rem;color:var(--ink3)}
+
+/* ladder matrix */
+.scroll{overflow-x:auto;-webkit-overflow-scrolling:touch}
+table.ladder{border-collapse:separate;border-spacing:6px;min-width:860px;width:100%;font-family:var(--sans);font-size:.88rem;line-height:1.35}
+.ladder th{font-weight:600;text-align:left;vertical-align:bottom;padding:4px 8px;color:var(--ink2)}
+.ladder th .lv{display:block;font-family:var(--mono);font-size:1.05rem;color:var(--ink)}
+.ladder th .ln{display:block;font-weight:500;font-size:.78rem;color:var(--ink3)}
+.ladder td{background:var(--panel);border:1px solid var(--rule);border-radius:4px;padding:10px;vertical-align:top}
+.ladder td.l0{border-style:dashed;border-color:var(--rule2)}
+.ladder th.br{width:170px;vertical-align:top;padding:10px 8px}
+.br .tag{display:inline-grid;place-items:center;width:28px;height:28px;border-radius:50%;color:var(--paper);font-weight:700;margin-bottom:6px}
+.br .q{display:block;color:var(--ink);font-weight:600;font-size:.92rem}
+.br .first{display:inline-block;margin-top:6px;font-size:.7rem;letter-spacing:.08em;text-transform:uppercase;font-weight:700;padding:2px 7px;border-radius:999px;border:1.5px solid currentColor}
+tr.A .tag{background:var(--A)} tr.A td{border-top:3px solid var(--A)} tr.A .first{color:var(--A)}
+tr.B .tag{background:var(--B)} tr.B td{border-top:3px solid var(--B)}
+tr.C .tag{background:var(--C)} tr.C td{border-top:3px solid var(--C)} tr.C .first{color:var(--C)}
+tr.D .tag{background:var(--D)} tr.D td{border-top:3px solid var(--D)}
+tr.C td{background:var(--Ctint)}
+.legend{display:flex;flex-wrap:wrap;gap:8px 22px;font-family:var(--sans);font-size:.82rem;color:var(--ink2)}
+.legend span{display:inline-flex;align-items:center;gap:8px}
+.sw{display:inline-block;width:22px;height:14px;border-radius:3px;border:1px solid var(--rule2);background:var(--panel)}
+.sw.dash{border-style:dashed}
+.sw.first{background:var(--Ctint);border-color:var(--C)}
+
+/* cost chart */
+.chart{background:var(--panel);border:1px solid var(--rule);border-radius:6px;padding:18px 14px 10px}
+.chart svg{display:block;width:100%;height:auto;min-width:640px}
+.chart text{font-family:var(--sans);fill:var(--ink2)}
+
+/* systems matrix */
+table.sys{border-collapse:collapse;min-width:640px;width:100%;font-family:var(--sans);font-size:.9rem}
+.sys th,.sys td{padding:10px 12px;border-bottom:1px solid var(--rule);text-align:left;vertical-align:top}
+.sys thead th{color:var(--ink3);font-size:.75rem;letter-spacing:.1em;text-transform:uppercase;font-weight:600;border-bottom:1.5px solid var(--rule2)}
+.sys td.c,.sys th.c{text-align:center;width:52px}
+.sys .size{font-family:var(--mono);font-size:.8rem;color:var(--ink2);white-space:nowrap}
+.sys .why{color:var(--ink2);font-size:.85rem}
+.dot{display:inline-block;width:14px;height:14px;border-radius:50%}
+.dot.half{background:transparent!important;border:2px solid}
+.dA{background:var(--A);border-color:var(--A)} .dB{background:var(--B);border-color:var(--B)}
+.dC{background:var(--C);border-color:var(--C)} .dD{background:var(--D);border-color:var(--D)}
+.none{color:var(--rule2)}
+.count{font-family:var(--mono);font-weight:500}
+
+/* branch cards */
+.cards{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,440px),1fr));gap:16px}
+.card{background:var(--panel);border:1px solid var(--rule);border-radius:6px;padding:20px 22px;display:flex;flex-direction:column;gap:12px}
+.card h3{display:flex;align-items:center;gap:10px}
+.card .k{display:inline-grid;place-items:center;width:26px;height:26px;border-radius:50%;color:var(--paper);font-size:.85rem;flex:none}
+.card p,.card li{font-size:.95rem}
+.card .lbl{font-family:var(--sans);font-size:.72rem;letter-spacing:.1em;text-transform:uppercase;font-weight:600;color:var(--ink3)}
+.card ul{margin:0;padding-left:1.1em;display:flex;flex-direction:column;gap:4px}
+.card .open{font-style:italic;color:var(--ink2)}
+.card.A{border-top:3px solid var(--A)} .card.A .k{background:var(--A)}
+.card.B{border-top:3px solid var(--B)} .card.B .k{background:var(--B)}
+.card.C{border-top:3px solid var(--C)} .card.C .k{background:var(--C)}
+.card.D{border-top:3px solid var(--D)} .card.D .k{background:var(--D)}
+
+.rules{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,300px),1fr));gap:12px 28px;margin:0;padding:0;list-style:none;font-size:.95rem}
+.rules li{border-top:1px solid var(--rule);padding-top:10px}
+.rules b{font-family:var(--sans);font-weight:600}
+footer{font-family:var(--sans);font-size:.8rem;color:var(--ink3);border-top:1px solid var(--rule);padding-top:14px}
+</style>
+
+<div class="wrap">
+
+<header class="intro">
+  <span class="eyebrow">Project overview · planning stage</span>
+  <h1>mdbench</h1>
+  <p class="lede">A method-ladder benchmark for molecular simulation. Four scientific questions, each answered at five levels of rigour, on systems with published experimental data, all on one 6&nbsp;GB laptop GPU.</p>
+  <p>Nothing here predicts anything new. Each calculation is scored against measured values (ITC binding data, crystal endpoints, smFRET distributions, mutant kcat series), and its wall-clock cost is recorded beside the score. Plotting accuracy against log cost for each branch shows where extra rigour stops paying.</p>
+  <p class="thesis">“For this system class, rigour above L<i>n</i> did not pay.” One such sentence per branch is the product of the repo.</p>
+</header>
+
+<section>
+  <span class="eyebrow">The ladder</span>
+  <h2>Four questions × five levels of rigour</h2>
+  <p>Each row is a branch; each column adds cost and physical content. L0 is a deliberately crude null model that every level above it must beat. Branch C is built first: it is the cheapest, and it exercises the machinery (PLUMED, collective variables, convergence diagnostics, the results schema) that the other three depend on.</p>
+  <div class="scroll">
+  <table class="ladder">
+    <thead><tr>
+      <th></th>
+      <th><span class="lv">L0</span><span class="ln">Null model</span></th>
+      <th><span class="lv">L1</span><span class="ln">Single structure</span></th>
+      <th><span class="lv">L2</span><span class="ln">Short MD + endpoint</span></th>
+      <th><span class="lv">L3</span><span class="ln">Rigorous classical FE</span></th>
+      <th><span class="lv">L4</span><span class="ln">Beyond the force field</span></th>
+    </tr></thead>
+    <tbody>
+      <tr class="C">
+        <th class="br"><span class="tag">C</span><span class="q">Which conformations, with what probability?</span><span class="first">Built first</span></th>
+        <td class="l0">Boltzmann over crystal endpoints</td><td>Static CV values</td><td>Histogram from unbiased MD</td><td>Metadynamics / umbrella + MSM</td><td>ML-potential FES for alanine dipeptide</td>
+      </tr>
+      <tr class="A">
+        <th class="br"><span class="tag">A</span><span class="q">How well does this ligand bind?</span></th>
+        <td class="l0">Ligand heavy-atom count</td><td>Docking score</td><td>MM/GBSA on short MD</td><td>ABFE / RBFE with MBAR</td><td>ML/MM correction on the ligand</td>
+      </tr>
+      <tr class="B">
+        <th class="br"><span class="tag">B</span><span class="q">How does this protein move?</span></th>
+        <td class="l0">Anisotropic network model</td><td>Normal modes from one structure</td><td>RMSF, contacts, PCA on short MD</td><td>Long or parallel MD, reversible transitions</td><td>MACE-OFF on a small peptide</td>
+      </tr>
+      <tr class="D">
+        <th class="br"><span class="tag">D</span><span class="q">What makes one enzyme faster?</span></th>
+        <td class="l0">kcat of nearest characterised homolog</td><td>Active-site geometry</td><td>NAC populations, field at the bond</td><td>PMF along the reaction coordinate</td><td>QM/MM barrier with xTB</td>
+      </tr>
+    </tbody>
+  </table>
+  </div>
+  <div class="legend">
+    <span><i class="sw dash"></i>Null baseline: must exist and be scored before L3 runs</span>
+    <span><i class="sw first"></i>Branch built first</span>
+  </div>
+</section>
+
+<section>
+  <span class="eyebrow">Cost axis</span>
+  <h2>What each rung costs on this machine</h2>
+  <p>Approximate wall-clock per calculation on the RTX&nbsp;4050, on a log scale. Solid bars come from the estimates in <span class="mono">docs/HARDWARE.md</span>; hatched bars are rough ranges inferred from the level definitions. All of them are to be replaced by measured numbers from <span class="mono">make bench</span>.</p>
+  <div class="chart scroll"><svg id="cost" viewBox="0 0 960 330" role="img" aria-label="Log-scale wall-clock ranges for levels L0 to L4"></svg></div>
+</section>
+
+<section>
+  <span class="eyebrow">Systems</span>
+  <h2>Shared systems across branches</h2>
+  <p>The systems are chosen so that one prepared structure serves several branches, which reuses the preparation work and keeps the cross-branch comparison controlled.</p>
+  <div class="scroll">
+  <table class="sys">
+    <thead><tr><th>System</th><th class="c">A</th><th class="c">B</th><th class="c">C</th><th class="c">D</th><th>Size</th><th>Role</th></tr></thead>
+    <tbody>
+      <tr><td><b>TEM-1 β-lactamase</b> <span class="count">· 4</span></td><td class="c"><i class="dot dA"></i></td><td class="c"><i class="dot dB"></i></td><td class="c"><i class="dot dC"></i></td><td class="c"><i class="dot dD"></i></td><td class="size">~260 res</td><td class="why">Serves all four. Scoped to reproducing published variant effects only.</td></tr>
+      <tr><td><b>T4 lysozyme L99A</b> <span class="count">· 3</span></td><td class="c"><i class="dot dA"></i></td><td class="c"><i class="dot dB"></i></td><td class="c"><i class="dot dC"></i></td><td class="c none">—</td><td class="size">164 res</td><td class="why">The ABFE benchmark; the cavity also breathes, giving a B/C system for free.</td></tr>
+      <tr><td><b>Adenylate kinase</b> <span class="count">· 2½</span></td><td class="c none">—</td><td class="c"><i class="dot dB"></i></td><td class="c"><i class="dot dC"></i></td><td class="c"><i class="dot half dD" title="partial"></i></td><td class="size">214 res</td><td class="why">Domain-motion reference. Its rate-limiting step is the conformational change itself.</td></tr>
+      <tr><td><b>Alanine dipeptide</b> <span class="count">· 1</span></td><td class="c none">—</td><td class="c none">—</td><td class="c"><i class="dot dC"></i></td><td class="c none">—</td><td class="size">22 atoms</td><td class="why">Correctness check. If the Ramachandran FES is wrong, everything above it is wrong.</td></tr>
+      <tr><td><b>CB7 host–guest</b> <span class="count">· 1</span></td><td class="c"><i class="dot dA"></i></td><td class="c none">—</td><td class="c none">—</td><td class="c none">—</td><td class="size">~3k atoms</td><td class="why">ABFE that finishes in hours, so the alchemy machinery is debugged before it costs days.</td></tr>
+    </tbody>
+  </table>
+  </div>
+  <p class="note">Hollow circle: partial fit, marked “~” in <span class="mono">docs/SYSTEMS.md</span>. Branch D's own systems, ketosteroid isomerase and chorismate mutase, appear only in its intent file.</p>
+</section>
+
+<section>
+  <span class="eyebrow">Branches</span>
+  <h2>Scope and finish line</h2>
+  <div class="cards">
+    <article class="card C">
+      <h3><span class="k">C</span>Conformational distributions</h3>
+      <p>Makes the ensemble the computed object. Alanine dipeptide first, then metadynamics and umbrella sampling on the ADK domain coordinate, then an MSM sharing trajectories with B.</p>
+      <span class="lbl">Done when</span>
+      <ul><li>Alanine dipeptide FES matches published surfaces</li><li>Metadynamics and umbrella FES for ADK agree, or the gap is explained</li><li>MSM with validated implied timescales gives populations</li></ul>
+      <p class="open">Open: how much simulation does the ADK FES need before it stops moving?</p>
+    </article>
+    <article class="card A">
+      <h3><span class="k">A</span>Binding affinity</h3>
+      <p>Relative and absolute binding free energies at every level. CB7 to debug alchemy in hours, then T4L L99A as the real benchmark; a congeneric RBFE series only if both land.</p>
+      <span class="lbl">Done when</span>
+      <ul><li>L0–L3 run on CB7 and T4L with uncertainty and wall-clock</li><li>Spearman, pairwise accuracy and RMSE with bootstrap CIs</li><li>Flattening point named; disk under 40 GB</li></ul>
+      <p class="open">Open: is L2→L3 worth 100× the compute for ranking specifically?</p>
+    </article>
+    <article class="card B">
+      <h3><span class="k">B</span>Conformational change</h3>
+      <p>Does each method recover a known motion? Adenylate kinase open/closed, plus fast folders (Trp-cage, chignolin) whose reversible folding is reachable on this GPU.</p>
+      <span class="lbl">Done when</span>
+      <ul><li>ANM motion for ADK scored before any MD runs</li><li>Replicate MD, with the number that saw a transition recorded</li><li>Protein-only XTC, branch under 30 GB</li></ul>
+      <p class="open">Open: does seconds of ANM capture most of what microseconds of MD show?</p>
+    </article>
+    <article class="card D">
+      <h3><span class="k">D</span>Enzymatic properties</h3>
+      <p>Reproduces measured structure–activity relationships: KSI active-site field vs kcat across mutants, and the chorismate mutase barrier with distal-mutation data.</p>
+      <span class="lbl">Done when</span>
+      <ul><li>KSI field–kcat correlation reproduced with a CI</li><li>Chorismate mutase PMF at L3 and at L4 (xTB QM/MM)</li><li>Unreproduced distal effects written up as results</li></ul>
+      <p class="open">Open: does a non-polarisable force field get the KSI field right at all?</p>
+    </article>
+  </div>
+</section>
+
+<section>
+  <span class="eyebrow">House rules</span>
+  <h2>What keeps the comparison fair</h2>
+  <ul class="rules">
+    <li><b>L0 before L3.</b> No expensive run until the null has a recorded score.</li>
+    <li><b>Ground truth is adopted, not curated.</b> Every reference value carries a DOI.</li>
+    <li><b>Ranking first.</b> Spearman ρ and pairwise accuracy outweigh RMSE.</li>
+    <li><b>Noise floor ~0.4 kcal/mol.</b> No claimed resolution below experimental reproducibility.</li>
+    <li><b>One parquet row per calculation.</b> Results are kept; trajectories are disposable.</li>
+    <li><b>Hardware held fixed.</b> 6 GB VRAM ceiling; any rented run records its GPU.</li>
+  </ul>
+</section>
+
+<footer>Summarised from README.md, CLAUDE.md, docs/ and intent/ in the mdbench repo, October 2026. Status: planning, no code yet.</footer>
+</div>
+
+<script>
+(function(){
+  const svg=document.getElementById('cost'), NS='http://www.w3.org/2000/svg';
+  const L=120,R=930,T=24,rowH=50,MAX=Math.log10(100*86400);
+  const x=s=>L+(Math.log10(s)/MAX)*(R-L);
+  const el=(n,a,t)=>{const e=document.createElementNS(NS,n);for(const k in a)e.setAttribute(k,a[k]);if(t!=null)e.textContent=t;svg.appendChild(e);return e;};
+  const defs=document.createElementNS(NS,'defs');
+  defs.innerHTML='<pattern id="hatch" width="6" height="6" patternUnits="userSpaceOnUse" patternTransform="rotate(45)"><rect width="6" height="6" fill="var(--panel)"/><line x1="0" y1="0" x2="0" y2="6" stroke="var(--ink3)" stroke-width="2"/></pattern>';
+  svg.appendChild(defs);
+  const ticks=[[1,'1 s'],[60,'1 min'],[3600,'1 h'],[86400,'1 day'],[7*86400,'1 week'],[30*86400,'1 month'],[100*86400,'100 days']];
+  const bottom=T+rowH*5+6;
+  ticks.forEach(([s,l])=>{el('line',{x1:x(s),x2:x(s),y1:T-6,y2:bottom,stroke:'var(--rule)','stroke-width':1});el('text',{x:x(s),y:bottom+20,'text-anchor':'middle','font-size':12},l);});
+  const rows=[
+    {lv:'L0',name:'Null model',bars:[{a:1,b:60,est:false,t:'seconds, no simulation'}]},
+    {lv:'L1',name:'Single structure',bars:[{a:10,b:3600,est:true,t:'docking, normal modes'}]},
+    {lv:'L2',name:'Short MD',bars:[{a:2*3600,b:86400,est:true,t:'tens of ns at 100–200 ns/day'}]},
+    {lv:'L3',name:'Rigorous FE',bars:[{a:3*3600,b:3*86400,est:false,t:'CB7 hours/guest → T4L 1–3 days/ligand',lab:'left'},{a:40*86400,b:100*86400,est:false,t:'ADK MSM set, 4–10 µs',lab:'above'}]},
+    {lv:'L4',name:'Beyond FF',bars:[{a:86400,b:2*86400,est:false,t:'xTB QM/MM profile, 1–2 days'}]},
+  ];
+  rows.forEach((r,i)=>{
+    const y=T+i*rowH, cy=y+rowH/2;
+    el('text',{x:8,y:cy-2,'font-size':15,'font-weight':600,style:'fill:var(--ink);font-family:var(--mono)'},r.lv);
+    el('text',{x:8,y:cy+15,'font-size':11.5},r.name);
+    r.bars.forEach(b=>{
+      const x1=x(b.a),x2=x(b.b);
+      el('rect',{x:x1,y:cy-9,width:Math.max(4,x2-x1),height:18,rx:3,fill:b.est?'url(#hatch)':'var(--ink2)',stroke:'var(--ink2)','stroke-width':1});
+      if(b.lab==='above') el('text',{x:x2,y:cy-14,'font-size':12,'text-anchor':'end'},b.t);
+      else if(b.lab==='left') el('text',{x:x1-8,y:cy+4,'font-size':12,'text-anchor':'end'},b.t);
+      else el('text',{x:x2+8,y:cy+4,'font-size':12},b.t);
+    });
+  });
+  el('text',{x:R,y:bottom+38,'text-anchor':'end','font-size':11,style:'fill:var(--ink3)'},'wall-clock per calculation, log scale');
+})();
+</script>
