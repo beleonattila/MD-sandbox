@@ -107,7 +107,9 @@ table.sys{border-collapse:collapse;min-width:640px;width:100%;font-family:var(--
 .rules{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,300px),1fr));gap:12px 28px;margin:0;padding:0;list-style:none;font-size:.95rem}
 .rules li{border-top:1px solid var(--rule);padding-top:10px}
 .rules b{font-family:var(--sans);font-weight:600}
-footer{font-family:var(--sans);font-size:.8rem;color:var(--ink3);border-top:1px solid var(--rule);padding-top:14px}
+footer{font-family:var(--sans);font-size:.8rem;color:var(--ink3);border-top:1px solid var(--rule);padding-top:14px;line-height:1.7;overflow-wrap:anywhere}
+footer a{color:var(--ink2);text-underline-offset:2px}
+footer a:hover,footer a:focus-visible{color:var(--ink)}
 
 /* branch C progress */
 .prog{border-top:3px solid var(--C);padding-top:18px}
@@ -303,7 +305,7 @@ footer{font-family:var(--sans);font-size:.8rem;color:var(--ink3);border-top:1px 
   </ul>
 </section>
 
-<footer>Summarised from README.md, CLAUDE.md, docs/, intent/ and results/c.parquet in the mdbench repo, 10 October 2026. Branch C is in progress; branches A, B and D are still at the planning stage.</footer>
+<footer>Summarised from README.md, CLAUDE.md, docs/, intent/ and results/c.parquet in the mdbench repo, 10 October 2026. Branch C is in progress; branches A, B and D are still at the planning stage.<br>Public page: <a href="https://beleonattila.github.io/MD-sandbox/mdbench-overview.html">beleonattila.github.io/MD-sandbox/mdbench-overview.html</a> · Source: <a href="https://github.com/beleonattila/MD-sandbox">github.com/beleonattila/MD-sandbox</a></footer>
 </div>
 
 <script>
