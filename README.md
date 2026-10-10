@@ -7,9 +7,9 @@ The point is not to predict anything new. It is to find out, on one machine with
 set of systems, **how much rigour a given question actually needs** — and to have run
 every rung of the ladder personally rather than read about it.
 
-For a visual summary of the branches, the ladder, costs and branch C progress, see
-[`mdbench-overview.html`](mdbench-overview.html). GitHub shows HTML as source, so
-download it or open it from a local clone in a browser.
+For a visual summary of the branches, the ladder, costs and branch C progress, see the
+[overview page](https://beleonattila.github.io/MD-sandbox/mdbench-overview.html)
+(source: [`mdbench-overview.html`](mdbench-overview.html)).
 
 ## The four branches
 
