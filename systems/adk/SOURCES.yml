@@ -1,0 +1,63 @@
+# Adenylate kinase: provenance of the structures and of the CV definition.
+# Hand-written verification record (the generated preparation record is prep.yml).
+verified_on: 2026-10-10
+verified_by: branch-C AdK agent (Claude), for Attila Beleon
+
+structures:
+  4AKE:
+    download: https://files.rcsb.org/download/4AKE.pdb (+ .cif, + https://data.rcsb.org/rest/v1/core/entry/4AKE)
+    downloaded_on: 2026-10-10
+    checksums: raw/SHA256SUMS
+    docs_SYSTEMS_md_claim: "open, apo"
+    found_in_file:
+      title: ADENYLATE KINASE
+      organism: Escherichia coli (taxid 562), expressed in E. coli
+      method: X-ray diffraction, 2.20 A (REMARK 2; RCSB entry API resolution_combined 2.2)
+      chains: A, B (214 residues each, complete 1-214, no REMARK 465)
+      ligands: none (HETATM records are 147 waters only)
+      state: open (LID and NMP domains open; theta_LID 146.5/144.8 deg for chains A/B)
+    claim_holds: true
+    primary_citation:
+      doi: 10.1016/S0969-2126(96)00018-4
+      text: "Mueller, Schlauderer, Reinstein, Schulz (1996) Adenylate kinase motions during
+        catalysis: an energetic counterweight balancing substrate binding. Structure 4:147-156"
+      verified: DOI resolved via api.crossref.org on 2026-10-10; title/authors/journal match the JRNL record
+  1AKE:
+    download: https://files.rcsb.org/download/1AKE.pdb (+ .cif, + https://data.rcsb.org/rest/v1/core/entry/1AKE)
+    downloaded_on: 2026-10-10
+    checksums: raw/SHA256SUMS
+    docs_SYSTEMS_md_claim: "closed, with Ap5A"
+    found_in_file:
+      title: "STRUCTURE OF THE COMPLEX BETWEEN ADENYLATE KINASE FROM ESCHERICHIA COLI AND THE
+        INHIBITOR AP5A REFINED AT 1.9 ANGSTROMS RESOLUTION"
+      organism: Escherichia coli (taxid 562), expressed in E. coli
+      method: X-ray diffraction, 2.00 A in REMARK 2 and the RCSB entry API (the title says 1.9 A)
+      chains: A, B (214 residues each, complete, no REMARK 465)
+      ligands: AP5 = bis(adenosine)-5'-pentaphosphate (Ap5A), one per chain; 378 waters
+      altlocs: ARG A167 and AP5 A215 (first altloc kept)
+      state: closed (theta_LID 106.1/106.3 deg, theta_NMP 44.3/43.9 deg for chains A/B)
+    claim_holds: true
+    primary_citation:
+      doi: 10.1016/0022-2836(92)90582-5
+      text: "Mueller, Schulz (1992) Structure of the complex between adenylate kinase from
+        Escherichia coli and the inhibitor Ap5A refined at 1.9 A resolution. J. Mol. Biol.
+        224:159-177"
+      verified: DOI resolved via api.crossref.org on 2026-10-10; matches the JRNL record
+
+cv_definition:
+  doi: 10.1016/j.jmb.2009.09.009
+  text: "Beckstein, Denning, Perilla, Woolf (2009) Zipping and unzipping of adenylate kinase:
+    atomistic insights into the ensemble of open <-> closed transitions. J. Mol. Biol.
+    394:160-176 (PMC2803350)"
+  verified: >-
+    DOI resolved via api.crossref.org on 2026-10-10. The residue ranges were read from the
+    Figure 1 legend of the PMC full text (PMC2803350): theta_NMP from the centres of geometry
+    of backbone + CB atoms of residues 115-125, 90-100 (vertex), 35-55; theta_LID
+    "defined equivalently" from 179-185, 115-125 (vertex), 125-153. The legend does not
+    repeat "backbone and CB" for theta_LID; the same atom set is used, as in Beckstein's
+    MDAnalysis course code (becksteinlab.physics.asu.edu, SimBioNano 2013, trajectories page),
+    which uses "(backbone or name CB)" for all six groups.
+  domain_boundaries_in_paper: "CORE 1-29, 60-121, 160-214; NMP 30-59; LID 122-159"
+  published_crystal_values: >-
+    The paper states only that 4AKE is "wide open" with theta_LID > 140 deg; no numeric
+    angles for 4AKE/1AKE were taken from it. The values in results/c.parquet are computed here.

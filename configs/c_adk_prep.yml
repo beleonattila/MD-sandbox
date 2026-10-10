@@ -1,0 +1,60 @@
+# Adenylate kinase (E. coli) system preparation, branch C.
+#   RUN python -m mdbench.branch_c.adk prep configs/c_adk_prep.yml
+# Inputs only. The full preparation record (these inputs + verification against the
+# PDB headers + what pdbfixer found/changed + atom counts + checksums) is written to
+# systems/adk/prep.yml. Not a `mdbench run` config: preparation emits no results rows.
+prep:
+  raw_dir: systems/adk/raw
+  out_dir: systems/adk/prepared
+  record: systems/adk/prep.yml
+  download_url: https://files.rcsb.org/download/{id}.pdb   # provenance only; raw files are committed
+  structures:
+    4AKE:
+      state: open
+      role: apo open endpoint
+      expected:                      # docs/SYSTEMS.md: "4AKE (open, apo)"
+        organism_scientific: ESCHERICHIA COLI
+        organism_taxid: 562
+        molecule: ADENYLATE KINASE
+        method: X-RAY DIFFRACTION
+        resolution_A: 2.20
+        ligands: []                  # HETNAM records other than water
+        chains: [A, B]
+        residues_per_chain: 214
+    1AKE:
+      state: closed
+      role: closed endpoint (crystallised with the bisubstrate inhibitor Ap5A)
+      expected:                      # docs/SYSTEMS.md: "1AKE (closed, with Ap5A)"
+        organism_scientific: ESCHERICHIA COLI
+        organism_taxid: 562
+        molecule: ADENYLATE KINASE
+        method: X-RAY DIFFRACTION
+        resolution_A: 2.00           # PDB REMARK 2; the paper title says 1.9 A
+        ligands: [AP5]
+        chains: [A, B]
+        residues_per_chain: 214
+  chains: [A, B]                     # both copies are prepared protein-only (used for L0/L1 spread)
+  solvate_chains: [A]                # chain A of each structure is solvated for MD
+  ligands: remove                    # Ap5A removed from 1AKE: apo closed state for L0-L3
+  crystal_waters: remove             # all HOH removed; bulk TIP3P added by Modeller
+  altloc: first                      # OpenMM PDBFile keeps the first alternate location (1AKE: ARG A167, AP5 A215)
+  missing_residues: model_internal_only   # terminal gaps are not modelled (there are none: REMARK 465 absent)
+  ph: 7.0
+  histidine_override: {}             # {resid: HID|HIE|HIP}; empty = OpenMM Modeller H-bond-based choice
+  require_identical_protonation: true  # L0 compares energies across structures: same topology required
+  forcefield: [amber14-all.xml, amber14/tip3p.xml]   # Amber ff14SB protein + TIP3P (OpenMM bundled)
+  implicit_forcefield: [amber14-all.xml, implicit/gbn2.xml]   # used by L0 only
+  water_model: tip3p
+  box_shape: dodecahedron            # rhombic dodecahedron, ~71% of the cube volume
+  padding_nm: 1.2                    # OpenMM semantics: box width = bounding-sphere diameter + padding,
+                                     # i.e. >= 1.2 nm between periodic images in any orientation
+  box_from: 4AKE                     # both structures solvated in the box sized for open 4AKE
+  ionic_strength_molar: 0.15
+  positive_ion: Na+
+  negative_ion: Cl-
+  neutralize: true
+  seed: 2026                         # python `random` seed (Modeller ion and hydrogen placement)
+  hydrogen_platform: Reference       # Modeller's H minimisation; Reference is bitwise deterministic (CPU is not)
+  storage_estimate:
+    frame_interval_ps: 100
+    duration_ns: 100

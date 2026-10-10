@@ -1,0 +1,47 @@
+# Shared base for every adenylate kinase branch-C run (extended by c_adk_*.yml).
+# Prepared inputs come from `python -m mdbench.branch_c.adk prep configs/c_adk_prep.yml`;
+# their checksums and every preparation choice are in systems/adk/prep.yml.
+branch: c
+system: adk        # rows override `system` with the prediction target (see branch_c/adk.py)
+
+adk:
+  prep_record: systems/adk/prep.yml
+  endpoints:                         # protein-only, H added, ligand and waters removed
+    open:
+      4AKE_A: systems/adk/prepared/4AKE_A_protein.pdb
+      4AKE_B: systems/adk/prepared/4AKE_B_protein.pdb
+    closed:
+      1AKE_A: systems/adk/prepared/1AKE_A_protein.pdb
+      1AKE_B: systems/adk/prepared/1AKE_B_protein.pdb
+  solvated_pdb: systems/adk/prepared/4AKE_A_solvated.pdb.gz   # MD start: apo open, 40,119 atoms
+
+system_build:                        # explicit solvent (L2/L3)
+  forcefield: [amber14-all.xml, amber14/tip3p.xml]   # Amber ff14SB + TIP3P
+  nonbonded_cutoff_nm: 1.0
+  switch_distance_nm: null
+  ewald_error_tolerance: 5.0e-4
+  constraints: HBonds
+  rigid_water: true
+  hydrogen_mass_amu: null            # set 3-4 (HMR) to allow a 4 fs step; not used by default
+
+analysis:
+  # "Closed" box: both angles below the midpoint between the L1 chain-mean crystal values
+  # (4AKE 72.6/145.7 deg, 1AKE 44.1/106.2 deg; see results L1 rows). A definition, not data.
+  closed:
+    theta_nmp_max: 58.3
+    theta_lid_max: 125.9
+  n_blocks: 5
+  discard_ps: 0.0
+
+md:
+  platform: CUDA
+  fallback_platform: null
+  precision: mixed
+  temperature_K: 300.0
+  friction_per_ps: 1.0
+  timestep_fs: 2.0
+  pressure_bar: 1.0
+  barostat_interval: 25
+  seed: 20261010
+  xtc_selection: solute              # protein only (docs/HARDWARE.md)
+  traj_interval_steps: 50000         # 100 ps/frame

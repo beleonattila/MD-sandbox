@@ -1,0 +1,20 @@
+{
+  "what": "smoke test of the solvated apo AdK pipeline (configs/c_adk_smoke.yml): 10 ps equilibration + 100 ps NPT production, CUDA, protein-only XTC at 1 ps, domain angles -> rows (written to a throw-away results dir, not results/c.parquet)",
+  "date": "2026-10-10",
+  "run_dir": "runs/c/adk/L2-unbiased_md_smoke-r0-04982f4b768e",
+  "n_atoms": 40119,
+  "platform": "CUDA",
+  "gpu": "NVIDIA GeForce RTX 4050 Laptop GPU",
+  "precision": "mixed",
+  "timestep_fs": 2.0,
+  "production_steps": 50000,
+  "ns_per_day": 153.2,
+  "wall_clock_s_total": 85.2,
+  "production_wall_clock_s": 56.4,
+  "gpu_shared": "yes: another agent's job was running (nvidia-smi showed ~92% utilisation before the run); treat ns/day as a lower bound",
+  "xtc_bytes_per_frame_protein_only": 12787,
+  "xtc_MB_per_100ns_at_100ps": 12.8,
+  "theta_nmp_mean_deg": 68.29,
+  "theta_lid_mean_deg": 148.21,
+  "p_closed": 0.0
+}

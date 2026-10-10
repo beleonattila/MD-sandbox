@@ -1,0 +1,31 @@
+# L3: Markov state model over unbiased apo AdK trajectories (no new MD in this run).
+#   RUN make run CONFIG=configs/c_adk_l3_msm.yml     (analysis: minutes, CPU)
+# NOT RUN YET. Needs the trajectories first: the 5 L2 replicates (500 ns, ~3.3 days) are
+# the minimum; a converged open<->closed MSM probably needs 20 x 200 ns = 4 us
+# (~26 days at the smoke-measured 153 ns/day; ~50 MB of protein-only XTC). That number is
+# the feasibility question in intent/C-conformational-distributions.md.
+# Diagnostics: implied timescales vs lag (must plateau before msm_lag) and the
+# Chapman-Kolmogorov max deviation (analysis.json).
+extends: c_adk_base.yml
+level: L3
+method: msm_domain_angles
+
+msm:
+  trajectories:
+    - runs/c/adk/L2-unbiased_md-r*/traj.xtc
+  min_trajectories: 2
+  features:
+    ca_distance_stride: 4            # CA-CA distances of every 4th CA (54 atoms, 1431 pairs) + the 2 angles
+  tica_lag_frames: 10                # 1 ns at 100 ps/frame
+  tica_dim: 4
+  n_clusters: 100
+  seed: 5001
+  its_lags_frames: [1, 2, 5, 10, 20, 50]
+  n_its: 3
+  msm_lag_frames: 20                 # 2 ns; choose from the ITS plateau
+  n_bayes_samples: 100
+  ck_steps: 4
+  ck_sets: 2
+
+md:
+  platform: CPU                      # not used: this runner does no MD

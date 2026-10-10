@@ -1,0 +1,35 @@
+# Defaults merged under every run config (the run config wins, key by key).
+# Everything here can change a result, so all of it is part of the hashed resolved
+# config. Only the `output` block is excluded from config_hash (where files land does
+# not change a number).
+
+replicate: 0
+
+md:
+  platform: CUDA              # CUDA | CPU | OpenCL | Reference
+  fallback_platform: null     # e.g. CPU: used only if `platform` cannot create a context
+  precision: mixed            # CUDA/OpenCL precision: single | mixed | double
+  device_index: null          # CUDA/OpenCL DeviceIndex; null = OpenMM default
+  cpu_threads: null           # CPU platform Threads; null = OpenMM default
+  integrator: langevin_middle # langevin_middle | verlet (verlet = NVE, for tests)
+  temperature_K: 300.0
+  friction_per_ps: 1.0
+  timestep_fs: 2.0
+  constraint_tolerance: 1.0e-6
+  pressure_bar: null          # set to add a MonteCarloBarostat
+  barostat_interval: 25
+  seed: 0                     # 0 = OpenMM chooses a random seed
+  minimize: true
+  minimize_max_iterations: 0  # 0 = until converged
+  minimize_tolerance_kj_mol_nm: 10.0
+  equilibration_steps: 0      # run before production; no trajectory output
+  n_steps: 5000               # production steps
+  traj_interval_steps: 50000  # 100 ps at 2 fs; sparse output by default
+  log_interval_steps: 5000
+  checkpoint_interval_steps: 250000
+  xtc_selection: solute       # solute | all | list of atom indices
+  resume: true                # continue from runs/.../checkpoint.chk if present
+
+output:
+  root: runs                  # relative to the repo root unless absolute
+  run_dir: null               # null = <root>/<branch>/<system>/<level>-<method>-r<replicate>-<hash12>

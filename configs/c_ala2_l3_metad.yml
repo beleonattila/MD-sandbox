@@ -1,0 +1,25 @@
+# L3a: well-tempered metadynamics on (phi, psi) with PLUMED (OPES absent from this build).
+extends: c_ala2_base.yml
+level: L3
+method: wtmetad_reweight
+
+sampling:
+  n_replicates: 2
+
+metad:
+  sigma_rad: 0.35
+  height_kj_mol: 1.2
+  pace_steps: 500             # 1 ps
+  biasfactor: 6.0
+  grid_bin: 200
+  colvar_stride_steps: 500
+  rct_ustride: 1
+  discard_ps: 1000.0          # bias-building transient excluded from reweighting
+
+md:
+  resume: false               # PLUMED HILLS are not restarted; never resume a metad run
+  equilibration_steps: 50000
+  n_steps: 5000000            # 10 ns per replica
+  traj_interval_steps: 50000  # 100 ps; analysis uses COLVAR
+  log_interval_steps: 50000
+  checkpoint_interval_steps: 0

@@ -1,0 +1,33 @@
+# L3: umbrella sampling along theta_LID (theta_NMP unrestrained), MBAR, apo AdK.
+#   RUN make run CONFIG=configs/c_adk_l3_umbrella.yml
+# NOT RUN YET. Estimated wall clock: 16 windows x (1 ns equilibration + 20 ns) = 336 ns at
+# the smoke-measured 153 ns/day -> ~2.2 days, sequential (one GPU). Windows chain their
+# starting structures (window i starts from the end of window i-1), from open (160 deg)
+# down to closed (100 deg). Over the 6 h threshold in CLAUDE.md: ask before launching.
+# Diagnostics: MBAR overlap matrix (overlap_matrix.npy, min neighbour overlap in
+# analysis.json), per-window statistical inefficiency. A 1D LID coordinate leaves NMP
+# closure unbiased: if theta_NMP does not equilibrate within windows, that is a CV problem.
+extends: c_adk_base.yml
+level: L3
+method: umbrella_theta_lid
+
+umbrella:
+  cv: theta_lid
+  centers_deg: [160, 156, 152, 148, 144, 140, 136, 132, 128, 124, 120, 116, 112, 108, 104, 100]
+  kappa_kj_mol_rad2: 500.0           # sd sqrt(kT/kappa) = 0.071 rad = 4.0 deg = the spacing
+  print_stride_steps: 500            # 1 ps
+  chain_starts: true
+  n_boot: 100
+  seed: 4001
+
+md:
+  seed: 4001
+  equilibration_steps: 500000        # 1 ns per window, discarded
+  n_steps: 10000000                  # 20 ns per window
+  traj_interval_steps: 50000
+  log_interval_steps: 50000
+  checkpoint_interval_steps: 500000
+
+analysis:
+  discard_ps: 0.0                    # equilibration is already excluded
+  n_blocks: 5

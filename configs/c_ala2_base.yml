@@ -1,0 +1,50 @@
+# Shared settings for every ala2 (branch C) config. Not run directly.
+branch: c
+system: ala2
+replicate: 0
+
+system_prep:
+  record: systems/ala2/prep.yml
+  structure: systems/ala2/ala2_tleap.pdb
+  forcefield: [amber14-all.xml, amber14/tip3p.xml]
+  water_model: tip3p
+  box_nm: 2.7
+  ionic_strength_M: 0.0
+  neutralize: true
+  nonbonded_cutoff_nm: 0.9
+  ewald_error_tolerance: 5.0e-4
+  constraints: HBonds
+  rigid_water: true
+  hydrogen_mass_amu: null
+
+analysis:
+  # Rectangles [phi_min, phi_max, psi_min, psi_max] in degrees, half-open on the max side.
+  # Together they tile the whole Ramachandran plane (no unassigned points).
+  basins:
+    C7eq_beta:            # beta, PII and C7eq (upper-left, plus the wrap of phi near +-180)
+      - [-180, 0, 50, 180]
+      - [-180, 0, -180, -120]
+      - [120, 180, -180, 180]
+    alphaR:
+      - [-180, 0, -120, 50]
+    alphaL_C7ax:          # phi > 0: alphaL and C7ax
+      - [0, 120, -180, 180]
+  reference_basin: C7eq_beta
+  fes_bins: 60
+  block_counts: [2, 3, 4, 5, 6, 8, 10, 15, 20, 30]
+  min_blocks: 4
+  reports_dir: reports
+
+md:
+  platform: CUDA
+  fallback_platform: CPU
+  precision: mixed
+  temperature_K: 300.0
+  friction_per_ps: 1.0
+  timestep_fs: 2.0
+  pressure_bar: 1.0
+  barostat_interval: 25
+  seed: 2026
+  minimize: true
+  minimize_max_iterations: 1000
+  xtc_selection: solute

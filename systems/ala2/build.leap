@@ -1,0 +1,4 @@
+source leaprc.protein.ff14SB
+m = sequence { ACE ALA NME }
+savepdb m ala2.pdb
+quit

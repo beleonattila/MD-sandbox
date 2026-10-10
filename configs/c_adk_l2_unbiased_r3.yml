@@ -1,0 +1,7 @@
+# L2 unbiased MD replicate 3 (see c_adk_l2_unbiased.yml for cost). NOT RUN YET.
+extends: c_adk_l2_unbiased.yml
+replicate: 3
+md:
+  seed: 1004
+adk:
+  solvated_pdb: systems/adk/prepared/1AKE_A_solvated.pdb.gz   # start from the closed endpoint

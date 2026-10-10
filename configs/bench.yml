@@ -1,0 +1,27 @@
+# `make bench` / `python -m mdbench bench [configs/bench.yml] [--n-atoms N]`
+# Timed MD on a TIP3P water box; prints ns/day, appends to reports/bench.csv.
+bench:
+  n_atoms: 25000              # target; actual count is whatever fills the cubic box
+  forcefield: [amber14-all.xml, amber14/tip3p.xml]
+  water_model: tip3p
+  cutoff_nm: 0.9
+  ewald_error_tolerance: 5.0e-4
+  switch_distance_nm: null
+
+md:
+  platform: CUDA
+  fallback_platform: CPU
+  precision: mixed
+  integrator: langevin_middle
+  temperature_K: 300.0
+  timestep_fs: 2.0
+  minimize: true
+  minimize_max_iterations: 200
+  equilibration_steps: 500    # warm-up, also absorbs kernel compilation
+  n_steps: 10000              # 20 ps timed production
+  traj_interval_steps: 0      # no trajectory for a throughput benchmark
+  log_interval_steps: 2500
+  checkpoint_interval_steps: 0
+
+output:
+  root: runs

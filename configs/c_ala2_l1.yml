@@ -1,0 +1,8 @@
+# L1: static CV values of the L0 minima + harmonic basin free energies (relaxed 2D Hessian).
+extends: c_ala2_l0.yml
+level: L1
+method: static_cv_harmonic
+
+harmonic:
+  hessian_step_deg: [10.0, 5.0, 15.0]   # first is the reported one; others give sensitivity
+  k_stiff_kj_rad2: 20000.0

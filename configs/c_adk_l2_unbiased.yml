@@ -1,0 +1,26 @@
+# L2: unbiased explicit-solvent MD of apo AdK, histogram of the domain angles.
+#   RUN make run CONFIG=configs/c_adk_l2_unbiased.yml          (replicate 0, start 4AKE)
+#   replicates: c_adk_l2_unbiased_r1.yml .. _r4.yml (r3, r4 start from closed 1AKE)
+# NOT RUN YET. Estimated wall clock per replicate (100 ns + 0.5 ns equilibration, 40,119
+# atoms): the smoke run measured 153 ns/day on the RTX 4050 (CUDA mixed, 2 fs, PME 1.0 nm,
+# GPU shared with another job) -> ~16 h per replicate; 5 replicates ~3.3 days sequential.
+# Over the 6 h threshold in CLAUDE.md: ask before launching.
+# Storage: 1000 frames x 3341 protein atoms; XTC measured 12.8 KB/frame -> ~13 MB/replicate.
+extends: c_adk_base.yml
+level: L2
+method: unbiased_md
+replicate: 0
+
+md:
+  seed: 1001
+  minimize: true
+  minimize_max_iterations: 0
+  equilibration_steps: 250000        # 0.5 ns NPT, not written
+  n_steps: 50000000                  # 100 ns production
+  traj_interval_steps: 50000         # 100 ps/frame, protein only
+  log_interval_steps: 50000
+  checkpoint_interval_steps: 500000  # 1 ns; resumable with md.resume
+
+analysis:
+  discard_ps: 10000.0                # first 10 ns of production dropped
+  n_blocks: 5

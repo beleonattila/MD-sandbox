@@ -1,0 +1,14 @@
+# L2: histogram over unbiased explicit-solvent MD, independent replicates.
+extends: c_ala2_base.yml
+level: L2
+method: md_histogram
+
+sampling:
+  n_replicates: 5             # seeds md.seed + r
+
+md:
+  equilibration_steps: 50000  # 100 ps NPT after minimisation, not analysed
+  n_steps: 5000000            # 10 ns production per replicate
+  traj_interval_steps: 500    # 1 ps; solute-only (22 atoms) so ~2.5 MB per replicate
+  log_interval_steps: 50000
+  checkpoint_interval_steps: 500000

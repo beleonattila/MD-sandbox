@@ -1,0 +1,23 @@
+# L0 null: two-state Boltzmann over the minimised crystal endpoints (no sampling).
+#   RUN make run CONFIG=configs/c_adk_l0.yml     (~1-2 min on the RTX 4050)
+# Potential energy in GBn2 implicit solvent only: no conformational entropy, no explicit
+# solvent. Expected to be badly wrong; it is the thing every higher level must beat.
+# Uncertainty = bootstrap sd over minimisation replicates (2 crystal copies x n_perturb
+# seeds per state): the reproducibility of the null, not its accuracy.
+extends: c_adk_base.yml
+level: L0
+method: boltzmann_endpoints_gbn2_min
+
+l0:
+  forcefield: [amber14-all.xml, implicit/gbn2.xml]
+  constraints: HBonds
+  n_perturb: 5                       # minimisations per crystal copy
+  perturb_sigma_nm: 0.01             # Gaussian noise on all coordinates before each minimisation
+  minimize_tolerance_kj_mol_nm: 1.0
+  minimize_max_iterations: 0         # until converged
+  n_boot: 2000
+  seed: 1
+
+md:
+  fallback_platform: CPU
+  pressure_bar: null                 # no barostat in vacuum/implicit minimisation

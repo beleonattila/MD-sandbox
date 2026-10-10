@@ -1,0 +1,36 @@
+# L3: well-tempered metadynamics on (theta_NMP, theta_LID), apo AdK, explicit solvent.
+#   RUN make run CONFIG=configs/c_adk_l3_metad.yml
+# NOT RUN YET. Estimated wall clock: 300 ns at the smoke-measured 153 ns/day (40,119 atoms,
+# shared RTX 4050; PLUMED CENTER/ANGLE on ~400 atoms adds a few %) -> ~2 days.
+# Over the 6 h threshold in CLAUDE.md: ask before launching. Convergence: the cumulative
+# reweighted p_closed (analysis.json) must plateau; HILLS lets you rebuild the FES vs time.
+# Angles are in radians inside PLUMED; sigma/walls below are given in degrees.
+extends: c_adk_base.yml
+level: L3
+method: metad_wt_domain_angles
+
+metad:
+  sigma_deg: [2.0, 2.0]              # ~ the unbiased fluctuation seen in the smoke run (1-2 deg)
+  height_kj_mol: 1.0
+  pace_steps: 1000                   # one hill per 2 ps
+  biasfactor: 10
+  grid_bin: 360                      # 0.5 deg bins on [0, pi]
+  rct_ustride: 10
+  print_stride_steps: 500            # COLVAR every 1 ps
+  walls:                             # keep the walkers in the physically relevant region
+    - {cv: theta_nmp, kind: upper, at_deg: 95.0, kappa_kj_mol_rad2: 2000.0}
+    - {cv: theta_nmp, kind: lower, at_deg: 30.0, kappa_kj_mol_rad2: 2000.0}
+    - {cv: theta_lid, kind: upper, at_deg: 170.0, kappa_kj_mol_rad2: 2000.0}
+    - {cv: theta_lid, kind: lower, at_deg: 90.0, kappa_kj_mol_rad2: 2000.0}
+
+md:
+  seed: 3001
+  equilibration_steps: 250000        # 0.5 ns unbiased NPT before bias (PLUMED active: bias grows here too)
+  n_steps: 150000000                 # 300 ns
+  traj_interval_steps: 50000         # 100 ps/frame
+  log_interval_steps: 50000
+  checkpoint_interval_steps: 500000
+
+analysis:
+  discard_ps: 30000.0                # first 30 ns: bias still building
+  n_blocks: 5

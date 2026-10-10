@@ -1,0 +1,17 @@
+# L3b: umbrella sampling along phi (OpenMM CustomTorsionForce), MBAR with pymbar 4.
+extends: c_ala2_base.yml
+level: L3
+method: umbrella_mbar_phi
+
+umbrella:
+  n_windows: 30               # 12 deg spacing over the periodic range
+  k_kj_rad2: 150.0            # thermal width sqrt(kT/k) ~ 7.4 deg at 300 K
+  profile_bins: 72
+
+md:
+  equilibration_steps: 25000  # 50 ps per window, not analysed
+  n_steps: 500000             # 1 ns per window
+  traj_interval_steps: 100    # 0.2 ps, solute only
+  log_interval_steps: 25000
+  checkpoint_interval_steps: 0
+  resume: false

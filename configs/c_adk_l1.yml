@@ -1,0 +1,16 @@
+# L1: static domain angles of the crystal structures (no sampling, no energy).
+#   RUN make run CONFIG=configs/c_adk_l1.yml     (seconds, CPU)
+# Uncertainty has no statistical component: sqrt(var between the two crystallographic
+# copies + var from coordinate error propagated by Monte Carlo).
+extends: c_adk_base.yml
+level: L1
+method: static_cv_crystal
+
+l1:
+  # 4AKE REMARK 3 Luzzati ESD = 0.30 A (1AKE reports none; the same value is applied to
+  # both). Applied as sigma per Cartesian component, which overstates a positional ESD by
+  # sqrt(3): deliberately conservative.
+  coordinate_sigma_A: 0.30
+  n_mc: 500
+  seed: 1
+  apo_state: open                    # the apo crystal predicts the apo ensemble means

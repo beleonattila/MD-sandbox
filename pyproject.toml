@@ -1,0 +1,44 @@
+[build-system]
+requires = ["setuptools>=68"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "mdbench"
+version = "0.1.0"
+description = "A method-ladder benchmark for molecular simulation (L0-L4 against experimental ground truth)."
+readme = "README.md"
+requires-python = ">=3.11"
+authors = [{ name = "Attila Beleon" }]
+# Dependencies are provided by the micromamba environment env/mdbench-md.yml, not by pip.
+dependencies = []
+
+[project.scripts]
+mdbench = "mdbench.cli:main"
+
+[tool.setuptools.packages.find]
+where = ["src"]
+
+[tool.setuptools.package-data]
+mdbench = ["defaults.yml"]
+
+[tool.ruff]
+line-length = 100
+target-version = "py311"
+src = ["src", "tests"]
+extend-exclude = ["runs", "env"]
+
+[tool.ruff.lint]
+select = ["E", "F", "W", "I", "B", "UP", "SIM", "RUF"]
+ignore = ["RUF001", "RUF002", "RUF003"]  # allow Greek letters / Å in docstrings and comments
+
+[tool.ruff.format]
+quote-style = "double"
+
+[tool.pytest.ini_options]
+pythonpath = ["src"]
+testpaths = ["tests"]
+addopts = "-ra"
+markers = [
+    "gpu: needs the CUDA platform (skipped when unavailable)",
+    "slow: longer than a few seconds",
+]

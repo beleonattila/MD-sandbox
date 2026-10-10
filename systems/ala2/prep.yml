@@ -1,0 +1,49 @@
+# Alanine dipeptide (ACE-ALA-NME) preparation record. Built, not downloaded.
+system: ala2
+description: >
+  Capped alanine dipeptide, Ac-Ala-NHMe, 22 atoms. The branch-C correctness check:
+  backbone (phi, psi) free energy surface and basin populations.
+build:
+  tool: tleap (AmberTools 26.0, conda-forge build cuda_None_nompi_py312hd652fd9_100)
+  input: systems/ala2/build.leap        # source leaprc.protein.ff14SB; sequence { ACE ALA NME }
+  output: systems/ala2/ala2_tleap.pdb   # extended chain as built by leap (phi, psi ~ 180)
+  hydrogens: all present from the leap residue templates
+protonation:
+  ph: not applicable (no titratable groups; caps are neutral)
+  tool: none
+  net_charge: 0
+force_field:
+  protein: Amber ff14SB, via OpenMM 8.4.0 amber14-all.xml (protein.ff14SB)
+  water: TIP3P (OpenMM amber14/tip3p.xml), rigid
+  rationale: >
+    Explicit TIP3P water is used for L2/L3 because the ala2 Ramachandran populations are
+    strongly solvent dependent (vacuum favours C7eq/C7ax intramolecular H-bonds; water
+    stabilises alphaR and PII). ff14SB + TIP3P is the most widely run combination for
+    this molecule, which matters if a published surface becomes verifiable later.
+  implicit_for_L0_L1: >
+    L0/L1 minimisations use ff14SB + GBn2 implicit solvent (OpenMM implicit/gbn2.xml),
+    no cutoff, no constraints: energy minimisation in explicit water is ill-defined
+    (water-configuration noise dominates), while vacuum is a different physical
+    question. This makes L0/L1 a different solvent model from L2/L3; that is part of
+    what the null model is supposed to expose.
+solvation:
+  tool: openmm.app.Modeller.addSolvent (deterministic placement)
+  box: cubic, 2.7 nm edge
+  crystallographic_waters: none (built structure)
+  ions: none; net charge 0, ionic strength 0 M
+nonbonded:
+  method: PME, cutoff 0.9 nm, ewaldErrorTolerance 5e-4, OpenMM default long-range dispersion correction
+  constraints: HBonds; rigid water
+  hydrogen_mass_repartitioning: none (2 fs timestep)
+thermodynamic_state:
+  temperature_K: 300
+  pressure_bar: 1.0 (MonteCarloBarostat, every 25 steps)
+  integrator: LangevinMiddleIntegrator, friction 1/ps, 2 fs
+cv:
+  phi: C(ACE)-N-CA-C(ALA)  (0-based atoms 4,6,8,14; PLUMED 5,7,9,15)
+  psi: N-CA-C(ALA)-N(NME)  (0-based atoms 6,8,14,16; PLUMED 7,9,15,17)
+  convention: IUPAC sign, radians internally, degrees in configs and reports
+missing_loops: none
+notes:
+  - PLUMED 2.9.2 in this env is built without the OPES module (`plumed config has opes`
+    -> not found), so L3 enhanced sampling uses well-tempered METAD with CALC_RCT.

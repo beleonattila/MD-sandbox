@@ -1,0 +1,19 @@
+# Smoke test of the explicit-solvent pipeline: ~100 ps of solvated apo AdK on CUDA,
+# trajectory -> domain angles -> rows. Not a result: run it with a throw-away results dir:
+#   MDBENCH_RESULTS_DIR=/tmp/adk_smoke RUN python -m mdbench run configs/c_adk_smoke.yml
+extends: c_adk_l2_unbiased.yml
+method: unbiased_md_smoke
+
+md:
+  seed: 7
+  minimize_max_iterations: 0
+  equilibration_steps: 5000          # 10 ps
+  n_steps: 50000                     # 100 ps production
+  traj_interval_steps: 500           # 1 ps/frame (oversampled on purpose: 100 frames)
+  log_interval_steps: 5000
+  checkpoint_interval_steps: 0
+  resume: false
+
+analysis:
+  discard_ps: 0.0
+  n_blocks: 5

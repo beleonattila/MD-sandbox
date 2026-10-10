@@ -1,0 +1,17 @@
+# L0 null: Boltzmann weights of minimised basin representatives. No sampling. CPU only.
+extends: c_ala2_base.yml
+level: L0
+method: boltzmann_minima
+
+minima:
+  forcefield: [amber14-all.xml, implicit/gbn2.xml]   # ff14SB + GBn2 implicit solvent
+  constraints: null
+  platform: CPU
+  start_grid_deg: 30          # 12 x 12 grid of (phi, psi) starts
+  k_pre_kj_rad2: 1000.0       # restrained pre-minimisation to the start, then released
+  minimize_tolerance_kj_mol_nm: 0.1
+  minimize_max_iterations: 0
+  cluster_tol_deg: 5.0
+  cluster_tol_kj_mol: 1.0e6     # angle-only clustering: one representative (the lowest) per (phi, psi) minimum
+  n_bootstrap: 2000
+  bootstrap_seed: 1

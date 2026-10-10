@@ -7,3 +7,5 @@ __pycache__/
 .ipynb_checkpoints/
 env/*.lock.yml.bak
 .env
+.pytest_cache/
+.ruff_cache/
