@@ -7,6 +7,10 @@ The point is not to predict anything new. It is to find out, on one machine with
 set of systems, **how much rigour a given question actually needs** — and to have run
 every rung of the ladder personally rather than read about it.
 
+For a visual summary of the branches, the ladder, costs and branch C progress, see
+[`mdbench-overview.html`](mdbench-overview.html). GitHub shows HTML as source, so
+download it or open it from a local clone in a browser.
+
 ## The four branches
 
 | | Question | First system |
@@ -67,4 +71,7 @@ held fixed, so any rented run records its GPU on the row.
 
 ## Status
 
-Planning. No code yet.
+Branch C is in progress. Alanine dipeptide has run through L0–L3. Adenylate kinase
+is prepared, with L0–L1 run and the L2/L3 production runs configured but not started.
+Experimental references are not yet attached, so nothing is scored against experiment.
+Branches A, B and D are at the planning stage.
