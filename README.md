@@ -9,7 +9,12 @@ every rung of the ladder personally rather than read about it.
 
 For a visual summary of the branches, the ladder, costs and branch C progress, see the
 [overview page](https://beleonattila.github.io/MD-sandbox/mdbench-overview.html)
-(source: [`mdbench-overview.html`](mdbench-overview.html)).
+(source: [`mdbench-overview.html`](mdbench-overview.html)). To watch the branch C
+alanine dipeptide runs, open the
+[motion page](https://beleonattila.github.io/MD-sandbox/mdbench-motion.html): 10 ns of
+unbiased MD beside its Ramachandran path, and the metadynamics bias filling in
+(source: [`mdbench-motion.html`](mdbench-motion.html), data regenerated with
+`python -m mdbench export-motion`).
 
 ## The four branches
 

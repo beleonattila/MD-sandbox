@@ -1,0 +1,558 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Alanine Dipeptide in Motion</title>
+<!-- Generated from runs/ by `python -m mdbench export-motion`; data in mdbench-motion.json. -->
+<style>body { margin: 0; } [hidden] { display: none !important; }</style>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&family=IBM+Plex+Sans:wght@400;500;600&family=Source+Serif+4:opsz,wght@8..60,600&display=swap">
+<style>
+/* Layout: two instrument panels, each a viewport pair (molecule | Ramachandran, surface | walker readout) over a scrubbable timeline. */
+:root {
+  --bg: #f4f6f8;
+  --panel: #ffffff;
+  --ink: #12171d;
+  --ink-2: #4a5561;
+  --ink-3: #7a8592;
+  --rule: #dce1e7;
+  --grid: #e9edf1;
+  --basin-b: #2a78d6;
+  --basin-r: #eb6834;
+  --basin-l: #1baf7a;
+  --atom-c: #5b6470;
+  --atom-n: #2f5fd0;
+  --atom-o: #d23c3c;
+  --atom-h: #f3f5f7;
+  --atom-edge: #8a939e;
+  --bond: #a3acb6;
+  --hbond: #1baf7a;
+  --walker: #12171d;
+  --fes-lo: #12355e;
+  --fes-hi: #eef3f8;
+  --f-display: "Source Serif 4", Georgia, serif;
+  --f-body: "IBM Plex Sans", system-ui, sans-serif;
+  --f-mono: "IBM Plex Mono", ui-monospace, monospace;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --bg: #0f1216; --panel: #171b21; --ink: #eef1f4; --ink-2: #b4bdc7; --ink-3: #85909c; --rule: #2a3038; --grid: #222830;
+    --basin-b: #3987e5; --basin-r: #d95926; --basin-l: #199e70;
+    --atom-c: #a7b0ba; --atom-n: #6d95f0; --atom-o: #ee6a6a; --atom-h: #e9edf1; --atom-edge: #5b6470; --bond: #6b7480; --hbond: #3fcf98;
+    --walker: #ffffff; --fes-lo: #8cc2ff; --fes-hi: #171b21; color-scheme: dark;
+  }
+}
+:root[data-theme="dark"] {
+  --bg: #0f1216; --panel: #171b21; --ink: #eef1f4; --ink-2: #b4bdc7; --ink-3: #85909c; --rule: #2a3038; --grid: #222830;
+  --basin-b: #3987e5; --basin-r: #d95926; --basin-l: #199e70;
+  --atom-c: #a7b0ba; --atom-n: #6d95f0; --atom-o: #ee6a6a; --atom-h: #e9edf1; --atom-edge: #5b6470; --bond: #6b7480; --hbond: #3fcf98;
+  --walker: #ffffff; --fes-lo: #8cc2ff; --fes-hi: #171b21; color-scheme: dark;
+}
+body { background: var(--bg); color: var(--ink); font-family: var(--f-body); font-size: 15px; line-height: 1.55; }
+.wrap { max-width: 1080px; margin: 0 auto; padding-inline: 20px; padding-block: 36px 64px; display: grid; gap: 40px; }
+h1, h2 { font-family: var(--f-display); font-weight: 600; margin: 0; line-height: 1.2; text-wrap: balance; }
+h1 { font-size: 30px; }
+h2 { font-size: 21px; }
+p { margin: 0; max-width: 70ch; }
+.eyebrow { font-size: 12px; letter-spacing: .08em; text-transform: uppercase; color: var(--ink-3); font-weight: 500; }
+.lede { color: var(--ink-2); }
+.mono { font-family: var(--f-mono); font-size: 12px; }
+header { display: grid; gap: 10px; }
+
+.panel { background: var(--panel); border: 1px solid var(--rule); border-radius: 8px; padding: 20px; display: grid; gap: 16px; }
+.panel-head { display: grid; gap: 6px; }
+.panel-head p { color: var(--ink-2); font-size: 14px; }
+.views { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+.view { position: relative; min-width: 0; display: grid; gap: 6px; align-content: start; }
+.view .cap { font-size: 12px; color: var(--ink-3); display: flex; justify-content: space-between; gap: 8px; flex-wrap: wrap; }
+.stage { position: relative; width: 100%; aspect-ratio: 1 / 1; max-width: 100%; border: 1px solid var(--rule); border-radius: 6px; overflow: hidden; background: var(--panel); }
+.stage canvas { position: absolute; inset: 0; width: 100%; height: 100%; display: block; }
+#mol { cursor: grab; touch-action: none; }
+#mol:active { cursor: grabbing; }
+
+.hud { display: flex; flex-wrap: wrap; gap: 8px 22px; align-items: center; font-family: var(--f-mono); font-size: 13px; font-variant-numeric: tabular-nums; color: var(--ink-2); }
+.hud b { color: var(--ink); font-weight: 500; }
+.chip { display: inline-flex; align-items: center; gap: 6px; padding: 2px 10px; border-radius: 999px; border: 1px solid var(--rule); font-family: var(--f-body); font-size: 13px; color: var(--ink); }
+.chip i { width: 9px; height: 9px; border-radius: 50%; display: inline-block; }
+
+.controls { display: flex; flex-wrap: wrap; gap: 10px 14px; align-items: center; }
+button.play { font: inherit; font-size: 14px; font-weight: 500; padding: 6px 14px; border-radius: 6px; border: 1px solid var(--ink); background: var(--ink); color: var(--panel); cursor: pointer; min-width: 84px; }
+button.ghost { font: inherit; font-size: 13px; padding: 5px 12px; border-radius: 6px; border: 1px solid var(--rule); background: transparent; color: var(--ink); cursor: pointer; }
+button:focus-visible, select:focus-visible, canvas:focus-visible { outline: 2px solid var(--basin-b); outline-offset: 2px; }
+label.speed { display: inline-flex; gap: 8px; align-items: center; font-size: 13px; color: var(--ink-2); }
+select { font: inherit; font-size: 13px; padding: 4px 8px; border-radius: 6px; border: 1px solid var(--rule); background: var(--panel); color: var(--ink); }
+
+.timeline { display: grid; gap: 4px; }
+.timeline canvas { width: 100%; height: 40px; display: block; cursor: pointer; border-radius: 4px; touch-action: none; }
+.timeline .ticks { display: flex; justify-content: space-between; font-family: var(--f-mono); font-size: 11px; color: var(--ink-3); }
+.legend { display: flex; flex-wrap: wrap; gap: 6px 18px; font-size: 13px; color: var(--ink-2); }
+.legend span { display: inline-flex; gap: 6px; align-items: center; }
+.legend i { width: 10px; height: 10px; border-radius: 2px; display: inline-block; }
+.legend .ramp { width: 90px; height: 10px; border-radius: 2px; border: 1px solid var(--rule); }
+
+.notes { display: grid; gap: 8px; font-size: 13px; color: var(--ink-2); }
+.notes p { max-width: 80ch; }
+.loading { position: absolute; inset: 0; display: flex; align-items: center; justify-content: center; color: var(--ink-3); font-size: 13px; }
+
+@media (max-width: 720px) {
+  .views { grid-template-columns: 1fr; }
+  h1 { font-size: 25px; }
+  .panel { padding: 14px; }
+}
+</style>
+</head>
+<body>
+
+<div class="wrap">
+  <header>
+    <div class="eyebrow">mdbench · branch C · alanine dipeptide, Amber14 in TIP3P water, 300 K</div>
+    <h1>Alanine dipeptide in motion</h1>
+    <p class="lede">These are the trajectories behind the branch C ala2 results. In the top panel, an unbiased L2 run hops between the C7eq/β and αR basins. In the bottom panel, well-tempered metadynamics builds up a bias until the walker reaches basins plain MD never visits. Water was simulated but isn't shown.</p>
+  </header>
+
+  <section class="panel" id="md">
+    <div class="panel-head">
+      <div class="eyebrow">L2 · unbiased MD · replica 2 of 5</div>
+      <h2>10 ns of thermal motion, one frame per picosecond</h2>
+      <p>The backbone core is held fixed, so you see the φ and ψ rotations rather than the whole molecule tumbling. The dashed green line appears when the C7 hydrogen bond (ACE O to NME H) is shorter than 2.5 Å.</p>
+    </div>
+    <div class="views">
+      <div class="view">
+        <div class="cap"><span>Molecule · drag to rotate</span><span id="md-atoms"></span></div>
+        <div class="stage"><canvas id="mol" tabindex="0" aria-label="Alanine dipeptide structure at the current frame. Drag or use arrow keys to rotate."></canvas><div class="loading" id="md-loading">Loading trajectory…</div></div>
+      </div>
+      <div class="view">
+        <div class="cap"><span>Ramachandran plane, φ against ψ (degrees)</span><span>last 200 ps as a trail</span></div>
+        <div class="stage"><canvas id="rama" aria-label="Ramachandran plot with the trajectory's path"></canvas></div>
+      </div>
+    </div>
+    <div class="hud" aria-live="off">
+      <span>t <b id="md-t">—</b> ns</span>
+      <span>φ <b id="md-phi">—</b>°</span>
+      <span>ψ <b id="md-psi">—</b>°</span>
+      <span class="chip" id="md-basin"><i></i><span>—</span></span>
+      <span>basin changes so far <b id="md-trans">—</b></span>
+    </div>
+    <div class="controls">
+      <button class="play" id="md-play" type="button">Play</button>
+      <button class="ghost" id="md-restart" type="button">Restart</button>
+      <label class="speed" for="md-speed">Speed
+        <select id="md-speed">
+          <option value="1">1 ps per frame</option>
+          <option value="3" selected>3 ps per frame</option>
+          <option value="10">10 ps per frame</option>
+          <option value="30">30 ps per frame</option>
+        </select>
+      </label>
+    </div>
+    <div class="timeline">
+      <canvas id="md-tl" aria-label="Basin occupied at each picosecond. Click or drag to jump."></canvas>
+      <div class="ticks"><span>0 ns</span><span>2.5</span><span>5</span><span>7.5</span><span>10 ns</span></div>
+    </div>
+    <div class="legend">
+      <span><i style="background:var(--basin-b)"></i>C7eq/β</span>
+      <span><i style="background:var(--basin-r)"></i>αR</span>
+      <span><i style="background:var(--basin-l)"></i>αL/C7ax (never reached here)</span>
+    </div>
+  </section>
+
+  <section class="panel" id="metad">
+    <div class="panel-head">
+      <div class="eyebrow">L3 · well-tempered metadynamics on φ and ψ · replica 1 of 2</div>
+      <h2>The bias fills the wells until the walker escapes</h2>
+      <p>A Gaussian hill is added every picosecond where the walker is. The shading is the running free-energy estimate, −γ/(γ−1)·V, shifted so its minimum is zero. Hills shrink as the bias grows, which is the well-tempered part. Opens on the final surface; press Play to watch it build.</p>
+    </div>
+    <div class="views">
+      <div class="view">
+        <div class="cap"><span>Free-energy estimate on φ, ψ (degrees)</span><span>kJ/mol</span></div>
+        <div class="stage"><canvas id="fes" aria-label="Free-energy estimate from deposited hills, with the walker's position"></canvas><div class="loading" id="mt-loading">Loading hills…</div></div>
+        <div class="legend"><span>0</span><span class="ramp" id="fes-ramp"></span><span id="fes-max">40+</span><span>walker shown as a ringed dot</span></div>
+      </div>
+      <div class="view">
+        <div class="cap"><span>Hill height over time</span><span>kJ/mol</span></div>
+        <div class="stage" style="aspect-ratio: 16 / 10"><canvas id="hh" aria-label="Height of each deposited hill over time"></canvas></div>
+        <div class="hud">
+          <span>t <b id="mt-t">—</b> ns</span>
+          <span>hills <b id="mt-n">—</b></span>
+          <span>last height <b id="mt-h">—</b> kJ/mol</span>
+          <span class="chip" id="mt-basin"><i></i><span>—</span></span>
+        </div>
+        <div class="controls">
+          <button class="play" id="mt-play" type="button">Play</button>
+          <button class="ghost" id="mt-restart" type="button">Restart</button>
+          <label class="speed" for="mt-speed">Speed
+            <select id="mt-speed">
+              <option value="5">5 hills per frame</option>
+              <option value="20" selected>20 hills per frame</option>
+              <option value="80">80 hills per frame</option>
+            </select>
+          </label>
+        </div>
+      </div>
+    </div>
+    <div class="timeline">
+      <canvas id="mt-tl" aria-label="Basin visited by the metadynamics walker over time. Click or drag to jump."></canvas>
+      <div class="ticks"><span>0 ns</span><span>2.5</span><span>5</span><span>7.5</span><span>10 ns</span></div>
+    </div>
+  </section>
+
+  <section class="notes">
+    <p>Basin boundaries come from the branch C analysis config. C7eq/β is φ &lt; 0 with ψ ≥ 50° or ψ &lt; −120°, plus φ ≥ 120°. αR is φ &lt; 0 with −120° ≤ ψ &lt; 50°. αL/C7ax is 0 ≤ φ &lt; 120°.</p>
+    <p>Sources: <span class="mono">runs/c/ala2/L2-md_histogram-r0-b3c7163251e5/rep_2</span> and <span class="mono">runs/c/ala2/L3-wtmetad_reweight-r0-0cfdc6ec0a11/rep_0</span>. Metadynamics settings: σ = 0.35 rad, initial height 1.2 kJ/mol, bias factor γ = 6, one hill per picosecond. The free-energy estimate is unreweighted and only for illustration. The branch C numbers come from the reweighted analysis.</p>
+  </section>
+</div>
+
+<script>
+(() => {
+  const $ = (id) => document.getElementById(id);
+  const reduce = matchMedia('(prefers-reduced-motion: reduce)').matches;
+  const DEG = 180 / Math.PI;
+  const dec = (b64, T) => { const s = atob(b64), u = new Uint8Array(s.length); for (let i = 0; i < s.length; i++) u[i] = s.charCodeAt(i); return new T(u.buffer); };
+
+  let C = {};
+  const readTokens = () => {
+    const cs = getComputedStyle(document.documentElement);
+    for (const k of ['ink', 'ink-2', 'ink-3', 'rule', 'grid', 'panel', 'basin-b', 'basin-r', 'basin-l', 'atom-c', 'atom-n', 'atom-o', 'atom-h', 'atom-edge', 'bond', 'hbond', 'walker', 'fes-lo', 'fes-hi'])
+      C[k] = cs.getPropertyValue('--' + k).trim();
+  };
+  readTokens();
+
+  const basinOf = (phi, psi) => { // degrees, from the analysis config
+    if (phi >= 120) return 'b';
+    if (phi >= 0) return 'l';
+    return (psi >= 50 || psi < -120) ? 'b' : 'r';
+  };
+  const BASIN = { b: ['C7eq/β', 'basin-b'], r: ['αR', 'basin-r'], l: ['αL/C7ax', 'basin-l'] };
+  const setChip = (el, k) => { el.querySelector('i').style.background = C[BASIN[k][1]]; el.querySelector('span').textContent = BASIN[k][0]; };
+
+  const fit = (cv) => {
+    const r = cv.getBoundingClientRect(), d = Math.min(devicePixelRatio || 1, 2);
+    const w = Math.max(1, Math.round(r.width * d)), h = Math.max(1, Math.round(r.height * d));
+    if (cv.width !== w || cv.height !== h) { cv.width = w; cv.height = h; }
+    return { w, h, d };
+  };
+
+  // Ramachandran frame shared by both panels
+  function ramaFrame(ctx, w, h, d, pad) {
+    const S = Math.min(w, h) - pad * 2;
+    const ox = (w - S) / 2 + pad * 0.35, oy = (h - S) / 2 - pad * 0.35;
+    const X = (deg) => ox + (deg + 180) / 360 * S, Y = (deg) => oy + (180 - deg) / 360 * S;
+    return { S, ox, oy, X, Y };
+  }
+  function ramaAxes(ctx, F, d) {
+    ctx.save();
+    ctx.strokeStyle = C.rule; ctx.lineWidth = 1 * d;
+    ctx.strokeRect(F.ox, F.oy, F.S, F.S);
+    ctx.fillStyle = C['ink-3']; ctx.font = `${11 * d}px "IBM Plex Mono", monospace`;
+    for (const t of [-180, -90, 0, 90, 180]) {
+      ctx.textAlign = 'center'; ctx.textBaseline = 'top'; ctx.fillText(String(t), F.X(t), F.oy + F.S + 5 * d);
+      ctx.textAlign = 'right'; ctx.textBaseline = 'middle'; ctx.fillText(String(t), F.ox - 5 * d, F.Y(t));
+    }
+    ctx.font = `${12 * d}px "IBM Plex Sans", sans-serif`; ctx.fillStyle = C['ink-2'];
+    ctx.textAlign = 'center'; ctx.textBaseline = 'top'; ctx.fillText('φ', F.X(0) + 14 * d, F.oy + F.S + 5 * d);
+    ctx.textAlign = 'right'; ctx.textBaseline = 'middle'; ctx.fillText('ψ', F.ox - 5 * d, F.Y(0) - 14 * d);
+    ctx.restore();
+  }
+  function ramaGrid(ctx, F, d) {
+    ctx.save(); ctx.strokeStyle = C.grid; ctx.lineWidth = 1 * d;
+    for (const t of [-90, 0, 90]) {
+      ctx.beginPath(); ctx.moveTo(F.X(t), F.oy); ctx.lineTo(F.X(t), F.oy + F.S); ctx.stroke();
+      ctx.beginPath(); ctx.moveTo(F.ox, F.Y(t)); ctx.lineTo(F.ox + F.S, F.Y(t)); ctx.stroke();
+    }
+    ctx.restore();
+  }
+  function basinShading(ctx, F) {
+    const rects = { b: [[-180, 0, 50, 180], [-180, 0, -180, -120], [120, 180, -180, 180]], r: [[-180, 0, -120, 50]], l: [[0, 120, -180, 180]] };
+    ctx.save(); ctx.globalAlpha = 0.09;
+    for (const k in rects) { ctx.fillStyle = C[BASIN[k][1]]; for (const [a, b, c, e] of rects[k]) ctx.fillRect(F.X(a), F.Y(e), F.X(b) - F.X(a), F.Y(c) - F.Y(e)); }
+    ctx.restore();
+  }
+  const walkerDot = (ctx, x, y, d, col) => {
+    ctx.beginPath(); ctx.arc(x, y, 6.5 * d, 0, 7); ctx.fillStyle = C.panel; ctx.fill();
+    ctx.beginPath(); ctx.arc(x, y, 4.5 * d, 0, 7); ctx.fillStyle = col; ctx.fill();
+    ctx.beginPath(); ctx.arc(x, y, 9 * d, 0, 7); ctx.strokeStyle = col; ctx.lineWidth = 1.5 * d; ctx.stroke();
+  };
+
+  function timeline(cv, labels, idx, n) {
+    const { w, h, d } = fit(cv), ctx = cv.getContext('2d');
+    ctx.clearRect(0, 0, w, h);
+    const bw = w / labels.length;
+    let start = 0;
+    for (let i = 1; i <= labels.length; i++) {
+      if (i === labels.length || labels[i] !== labels[start]) {
+        ctx.fillStyle = C[BASIN[labels[start]][1]];
+        ctx.fillRect(start * bw, 6 * d, (i - start) * bw + 0.5, h - 12 * d);
+        start = i;
+      }
+    }
+    const x = (idx / (n - 1)) * w;
+    ctx.fillStyle = C.panel; ctx.globalAlpha = 0.55; ctx.fillRect(x, 6 * d, w - x, h - 12 * d); ctx.globalAlpha = 1;
+    ctx.fillStyle = C.ink; ctx.fillRect(Math.min(w - 2 * d, Math.max(0, x - 1 * d)), 0, 2 * d, h);
+  }
+  function scrubber(cv, n, onSeek) {
+    let drag = false;
+    const seek = (e) => { const r = cv.getBoundingClientRect(); onSeek(Math.max(0, Math.min(n - 1, Math.round((e.clientX - r.left) / r.width * (n - 1))))); };
+    cv.addEventListener('pointerdown', (e) => { drag = true; cv.setPointerCapture(e.pointerId); seek(e); });
+    cv.addEventListener('pointermove', (e) => { if (drag) seek(e); });
+    cv.addEventListener('pointerup', () => { drag = false; });
+  }
+
+  // ---------- MD panel ----------
+  function setupMD(md) {
+    const N = md.n_frames, A = md.atoms.length;
+    const xyz = dec(md.xyz_i16_centiA, Int16Array);
+    const phi = Array.from(dec(md.phi, Float32Array), v => v * DEG), psi = Array.from(dec(md.psi, Float32Array), v => v * DEG);
+    const lab = phi.map((p, i) => basinOf(p, psi[i]));
+    const changes = new Int32Array(N); for (let i = 1; i < N; i++) changes[i] = changes[i - 1] + (lab[i] !== lab[i - 1] ? 1 : 0);
+    const el = md.atoms.map(a => a.e);
+    const rad = el.map(e => e === 'H' ? 0.24 : 0.36);
+    const col = (e) => C[{ C: 'atom-c', N: 'atom-n', O: 'atom-o', H: 'atom-h' }[e] || 'atom-c'];
+    const PHI_BOND = [6, 8], PSI_BOND = [8, 14], HB = [5, 17];
+    $('md-atoms').textContent = `${A} atoms · ${md.bonds.length} bonds`;
+
+    let f = 0, playing = !reduce, yaw = 0.6, pitch = -0.35;
+    const histCv = document.createElement('canvas');
+    let histUpTo = -1;
+
+    const rot = () => { const cy = Math.cos(yaw), sy = Math.sin(yaw), cp = Math.cos(pitch), sp = Math.sin(pitch); return (x, y, z) => { const x1 = cy * x + sy * z, z1 = -sy * x + cy * z; return [x1, cp * y - sp * z1, sp * y + cp * z1]; }; };
+
+    function drawMol() {
+      const cv = $('mol'), { w, h, d } = fit(cv), ctx = cv.getContext('2d');
+      ctx.clearRect(0, 0, w, h);
+      const R = rot(), P = [];
+      for (let a = 0; a < A; a++) { const o = (f * A + a) * 3; P.push(R(xyz[o] / 100, -xyz[o + 1] / 100, xyz[o + 2] / 100)); }
+      const scale = Math.min(w, h) / 11.5, cx = w / 2, cy = h / 2;
+      const sx = (p) => cx + p[0] * scale, sy = (p) => cy + p[1] * scale;
+      const items = [];
+      for (const [i, j] of md.bonds) items.push({ z: (P[i][2] + P[j][2]) / 2 - 0.01, k: 'b', i, j });
+      for (let a = 0; a < A; a++) items.push({ z: P[a][2], k: 'a', a });
+      items.sort((p, q) => p.z - q.z);
+      const zr = [Math.min(...P.map(p => p[2])), Math.max(...P.map(p => p[2]))];
+      const depth = (z) => 0.55 + 0.45 * (z - zr[0]) / Math.max(1e-6, zr[1] - zr[0]);
+      // C7 hydrogen bond
+      const dx = P[HB[0]][0] - P[HB[1]][0], dy = P[HB[0]][1] - P[HB[1]][1], dz = P[HB[0]][2] - P[HB[1]][2];
+      const hb = Math.hypot(dx, dy, dz);
+      if (hb < 2.5) {
+        ctx.save(); ctx.setLineDash([4 * d, 4 * d]); ctx.strokeStyle = C.hbond; ctx.lineWidth = 2 * d;
+        ctx.beginPath(); ctx.moveTo(sx(P[HB[0]]), sy(P[HB[0]])); ctx.lineTo(sx(P[HB[1]]), sy(P[HB[1]])); ctx.stroke(); ctx.restore();
+      }
+      for (const it of items) {
+        if (it.k === 'b') {
+          const special = (it.i === PHI_BOND[0] && it.j === PHI_BOND[1]) || (it.i === PSI_BOND[0] && it.j === PSI_BOND[1]);
+          ctx.globalAlpha = depth(it.z);
+          ctx.strokeStyle = special ? C.ink : C.bond; ctx.lineCap = 'round';
+          ctx.lineWidth = (special ? 7 : 5) * d * (scale / 40);
+          ctx.beginPath(); ctx.moveTo(sx(P[it.i]), sy(P[it.i])); ctx.lineTo(sx(P[it.j]), sy(P[it.j])); ctx.stroke();
+        } else {
+          const a = it.a, r = rad[a] * scale, x = sx(P[a]), y = sy(P[a]);
+          ctx.globalAlpha = 1;
+          const g = ctx.createRadialGradient(x - r * 0.35, y - r * 0.35, r * 0.1, x, y, r);
+          g.addColorStop(0, C.panel); g.addColorStop(0.35, col(el[a])); g.addColorStop(1, col(el[a]));
+          ctx.beginPath(); ctx.arc(x, y, r, 0, 7); ctx.fillStyle = g; ctx.fill();
+          ctx.globalAlpha = 1 - depth(it.z) + 0.0; ctx.fillStyle = C.panel; ctx.fill();
+          ctx.globalAlpha = 1; ctx.strokeStyle = C['atom-edge']; ctx.lineWidth = 1 * d; ctx.stroke();
+        }
+      }
+      ctx.globalAlpha = 1;
+      // φ / ψ labels at bond midpoints
+      ctx.font = `600 ${13 * d}px "IBM Plex Sans", sans-serif`; ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
+      for (const [[i, j], t] of [[PHI_BOND, 'φ'], [PSI_BOND, 'ψ']]) {
+        const mx = (sx(P[i]) + sx(P[j])) / 2, my = (sy(P[i]) + sy(P[j])) / 2;
+        ctx.fillStyle = C.panel; ctx.beginPath(); ctx.arc(mx, my - 16 * d, 9 * d, 0, 7); ctx.fill();
+        ctx.fillStyle = C.ink; ctx.fillText(t, mx, my - 16 * d);
+      }
+      ctx.font = `${11 * d}px "IBM Plex Mono", monospace`; ctx.textAlign = 'left'; ctx.textBaseline = 'bottom'; ctx.fillStyle = C['ink-3'];
+      ctx.fillText(hb < 2.5 ? `C7 H-bond ${hb.toFixed(2)} Å` : `O···H ${hb.toFixed(2)} Å`, 10 * d, h - 8 * d);
+    }
+
+    function drawRama() {
+      const cv = $('rama'), { w, h, d } = fit(cv), ctx = cv.getContext('2d');
+      const F = ramaFrame(ctx, w, h, d, 30 * d);
+      if (histCv.width !== w || histCv.height !== h || f < histUpTo) { histCv.width = w; histCv.height = h; histUpTo = -1; }
+      const hc = histCv.getContext('2d');
+      hc.fillStyle = C['ink-3']; hc.globalAlpha = 0.16;
+      for (let i = histUpTo + 1; i <= f; i++) { hc.beginPath(); hc.arc(F.X(phi[i]), F.Y(psi[i]), 1.4 * d, 0, 7); hc.fill(); }
+      histUpTo = f;
+      ctx.clearRect(0, 0, w, h);
+      basinShading(ctx, F); ramaGrid(ctx, F, d);
+      ctx.drawImage(histCv, 0, 0);
+      const L = 200, s0 = Math.max(0, f - L);
+      ctx.lineWidth = 1.5 * d; ctx.lineCap = 'round';
+      for (let i = s0 + 1; i <= f; i++) {
+        if (Math.abs(phi[i] - phi[i - 1]) > 180 || Math.abs(psi[i] - psi[i - 1]) > 180) continue;
+        ctx.globalAlpha = 0.08 + 0.8 * (i - s0) / (f - s0 + 1);
+        ctx.strokeStyle = C[BASIN[lab[i]][1]];
+        ctx.beginPath(); ctx.moveTo(F.X(phi[i - 1]), F.Y(psi[i - 1])); ctx.lineTo(F.X(phi[i]), F.Y(psi[i])); ctx.stroke();
+      }
+      ctx.globalAlpha = 1;
+      walkerDot(ctx, F.X(phi[f]), F.Y(psi[f]), d, C[BASIN[lab[f]][1]]);
+      ramaAxes(ctx, F, d);
+    }
+
+    function hud() {
+      $('md-t').textContent = (f * md.dt_ps / 1000).toFixed(3);
+      $('md-phi').textContent = phi[f].toFixed(0).padStart(4, ' ');
+      $('md-psi').textContent = psi[f].toFixed(0).padStart(4, ' ');
+      setChip($('md-basin'), lab[f]);
+      $('md-trans').textContent = String(changes[f]);
+    }
+    const draw = () => { drawMol(); drawRama(); timeline($('md-tl'), lab, f, N); hud(); };
+    const btn = $('md-play');
+    const setPlaying = (p) => { playing = p; btn.textContent = p ? 'Pause' : 'Play'; if (p) last = 0; };
+    btn.addEventListener('click', () => { if (!playing && f >= N - 1) f = 0; setPlaying(!playing); });
+    $('md-restart').addEventListener('click', () => { f = 0; draw(); });
+    scrubber($('md-tl'), N, (i) => { f = i; draw(); });
+
+    // rotation
+    const mol = $('mol'); let dragging = null;
+    mol.addEventListener('pointerdown', (e) => { dragging = [e.clientX, e.clientY]; mol.setPointerCapture(e.pointerId); });
+    mol.addEventListener('pointermove', (e) => { if (!dragging) return; yaw += (e.clientX - dragging[0]) * 0.01; pitch += (e.clientY - dragging[1]) * 0.01; dragging = [e.clientX, e.clientY]; drawMol(); });
+    mol.addEventListener('pointerup', () => { dragging = null; });
+    mol.addEventListener('keydown', (e) => {
+      const k = { ArrowLeft: [-0.15, 0], ArrowRight: [0.15, 0], ArrowUp: [0, -0.15], ArrowDown: [0, 0.15] }[e.key];
+      if (k) { yaw += k[0]; pitch += k[1]; drawMol(); e.preventDefault(); }
+    });
+
+    let last = 0;
+    const tick = (ts) => {
+      if (playing && ts - last > 30) {
+        last = ts;
+        f = Math.min(N - 1, f + Number($('md-speed').value));
+        draw();
+        if (f >= N - 1) setPlaying(false);
+      }
+      requestAnimationFrame(tick);
+    };
+    if (reduce) f = N - 1;
+    setPlaying(playing);
+    $('md-loading').hidden = true;
+    draw();
+    requestAnimationFrame(tick);
+    return { draw, reset: () => { histUpTo = -1; histCv.width = 0; } };
+  }
+
+  // ---------- metad panel ----------
+  function setupMetad(m) {
+    const t = dec(m.t_ps, Float32Array), hp = dec(m.phi, Float32Array), hs = dec(m.psi, Float32Array), hh = dec(m.height, Float32Array);
+    const ct = dec(m.cv_t, Float32Array), cphi = dec(m.cv_phi, Float32Array), cpsi = dec(m.cv_psi, Float32Array);
+    const H = m.n_hills, G = 90, sig = m.sigma, gam = m.biasf;
+    const grid = new Float64Array(G * G);
+    const centers = Array.from({ length: G }, (_, i) => -Math.PI + (i + 0.5) * 2 * Math.PI / G);
+    const gx = new Float64Array(G), gy = new Float64Array(G);
+    let n = 0; // hills added to grid
+    const addHill = (k) => {
+      for (let i = 0; i < G; i++) {
+        let a = centers[i] - hp[k]; a -= 2 * Math.PI * Math.round(a / (2 * Math.PI)); gx[i] = Math.exp(-a * a / (2 * sig * sig));
+        let b = centers[i] - hs[k]; b -= 2 * Math.PI * Math.round(b / (2 * Math.PI)); gy[i] = Math.exp(-b * b / (2 * sig * sig));
+      }
+      const h = hh[k];
+      for (let j = 0; j < G; j++) { const yj = gy[j] * h; if (yj < 1e-9) continue; const row = j * G; for (let i = 0; i < G; i++) grid[row + i] += gx[i] * yj; }
+    };
+    const goTo = (target) => { if (target < n) { grid.fill(0); n = 0; } while (n < target) addHill(n++); };
+    // Stored PLUMED heights already carry γ/(γ−1) (first hill 1.44 = 1.2·6/5), so −Σ stored hills is the FES estimate.
+    const cvIndexAt = (time) => { let lo = 0, hi = ct.length - 1; while (lo < hi) { const mid = (lo + hi + 1) >> 1; if (ct[mid] <= time) lo = mid; else hi = mid - 1; } return lo; };
+    const cvLab = Array.from(ct, (_, i) => basinOf(cphi[i] * DEG, cpsi[i] * DEG));
+    const FMAX = 40;
+    $('fes-max').textContent = FMAX + '+';
+
+    const img = document.createElement('canvas'); img.width = G; img.height = G;
+    const parse = (c) => { const x = document.createElement('canvas').getContext('2d'); x.fillStyle = c; x.fillRect(0, 0, 1, 1); return x.getImageData(0, 0, 1, 1).data; };
+    let lo, hi;
+    const ramp = () => { lo = parse(C['fes-lo']); hi = parse(C['fes-hi']); $('fes-ramp').style.background = `linear-gradient(90deg, ${C['fes-lo']}, ${C['fes-hi']})`; };
+    ramp();
+
+    function drawFES() {
+      const cv = $('fes'), { w, h, d } = fit(cv), ctx = cv.getContext('2d');
+      const F = ramaFrame(ctx, w, h, d, 30 * d);
+      let mx = 0; for (let i = 0; i < grid.length; i++) if (grid[i] > mx) mx = grid[i];
+      const ic = img.getContext('2d'), id = ic.createImageData(G, G);
+      for (let j = 0; j < G; j++) for (let i = 0; i < G; i++) {
+        const fe = Math.min(FMAX, mx - grid[j * G + i]) / FMAX; // 0 = minimum
+        const o = ((G - 1 - j) * G + i) * 4;
+        for (let c = 0; c < 3; c++) id.data[o + c] = lo[c] + (hi[c] - lo[c]) * Math.pow(fe, 0.8);
+        id.data[o + 3] = 255;
+      }
+      ic.putImageData(id, 0, 0);
+      ctx.clearRect(0, 0, w, h);
+      ctx.imageSmoothingEnabled = true; ctx.drawImage(img, F.ox, F.oy, F.S, F.S);
+      // contours every 10 kJ/mol would need marching squares; a light grid keeps orientation instead
+      ctx.save(); ctx.globalAlpha = 0.35; ramaGrid(ctx, F, d); ctx.restore();
+      const now = n ? t[n - 1] : 0, ci = cvIndexAt(now);
+      const s0 = cvIndexAt(now - 150);
+      ctx.lineWidth = 1.5 * d; ctx.strokeStyle = C.walker;
+      for (let i = s0 + 1; i <= ci; i++) {
+        const p0 = cphi[i - 1] * DEG, q0 = cpsi[i - 1] * DEG, p1 = cphi[i] * DEG, q1 = cpsi[i] * DEG;
+        if (Math.abs(p1 - p0) > 180 || Math.abs(q1 - q0) > 180) continue;
+        ctx.globalAlpha = 0.1 + 0.7 * (i - s0) / (ci - s0 + 1);
+        ctx.beginPath(); ctx.moveTo(F.X(p0), F.Y(q0)); ctx.lineTo(F.X(p1), F.Y(q1)); ctx.stroke();
+      }
+      ctx.globalAlpha = 1;
+      walkerDot(ctx, F.X(cphi[ci] * DEG), F.Y(cpsi[ci] * DEG), d, C.walker);
+      ramaAxes(ctx, F, d);
+      $('mt-t').textContent = (now / 1000).toFixed(2);
+      $('mt-n').textContent = n.toLocaleString('en');
+      $('mt-h').textContent = n ? (hh[n - 1] * (gam - 1) / gam).toFixed(3) : '—';
+      setChip($('mt-basin'), cvLab[ci]);
+      return ci;
+    }
+    function drawHH() {
+      const cv = $('hh'), { w, h, d } = fit(cv), ctx = cv.getContext('2d');
+      ctx.clearRect(0, 0, w, h);
+      const ml = 40 * d, mb = 24 * d, mt = 10 * d, mr = 10 * d;
+      const ymax = 1.2;
+      const X = (k) => ml + (k / (H - 1)) * (w - ml - mr), Y = (v) => mt + (1 - v / ymax) * (h - mt - mb);
+      ctx.strokeStyle = C.grid; ctx.lineWidth = 1 * d; ctx.fillStyle = C['ink-3']; ctx.font = `${11 * d}px "IBM Plex Mono", monospace`;
+      for (const v of [0, 0.4, 0.8, 1.2]) { ctx.beginPath(); ctx.moveTo(ml, Y(v)); ctx.lineTo(w - mr, Y(v)); ctx.stroke(); ctx.textAlign = 'right'; ctx.textBaseline = 'middle'; ctx.fillText(v.toFixed(1), ml - 6 * d, Y(v)); }
+      ctx.textAlign = 'center'; ctx.textBaseline = 'top';
+      for (const ns of [0, 2.5, 5, 7.5, 10]) ctx.fillText(ns + (ns === 10 ? ' ns' : ''), Math.min(w - mr - 14 * d, Math.max(ml + 6 * d, X(ns / 10 * (H - 1)))), h - mb + 6 * d);
+      const step = Math.max(1, Math.floor(H / (w / d)));
+      ctx.strokeStyle = C['ink-3']; ctx.globalAlpha = 0.45; ctx.lineWidth = 1 * d; ctx.beginPath();
+      for (let k = 0; k < H; k += step) { const v = hh[k] * (gam - 1) / gam; k ? ctx.lineTo(X(k), Y(v)) : ctx.moveTo(X(k), Y(v)); }
+      ctx.stroke(); ctx.globalAlpha = 1;
+      if (n > 1) {
+        ctx.strokeStyle = C['basin-b']; ctx.lineWidth = 1.5 * d; ctx.beginPath();
+        for (let k = 0; k < n; k += step) { const v = hh[k] * (gam - 1) / gam; k ? ctx.lineTo(X(k), Y(v)) : ctx.moveTo(X(k), Y(v)); }
+        ctx.stroke();
+        ctx.fillStyle = C['basin-b']; ctx.beginPath(); ctx.arc(X(n - 1), Y(hh[n - 1] * (gam - 1) / gam), 3.5 * d, 0, 7); ctx.fill();
+      }
+    }
+    const draw = () => { drawFES(); drawHH(); const ci = cvIndexAt(n ? t[n - 1] : 0); timeline($('mt-tl'), cvLab, ci, cvLab.length); };
+
+    let playing = false, last = 0;
+    const btn = $('mt-play');
+    const setPlaying = (p) => { playing = p; btn.textContent = p ? 'Pause' : 'Play'; };
+    btn.addEventListener('click', () => { if (!playing && n >= H) goTo(0); setPlaying(!playing); });
+    $('mt-restart').addEventListener('click', () => { goTo(0); draw(); });
+    scrubber($('mt-tl'), cvLab.length, (i) => {
+      const time = ct[i]; let k = 0, lo2 = 0, hi2 = H; while (lo2 < hi2) { const mid = (lo2 + hi2) >> 1; if (t[mid] <= time) lo2 = mid + 1; else hi2 = mid; } k = lo2;
+      goTo(k); draw();
+    });
+    const tick = (ts) => {
+      if (playing && ts - last > 30) { last = ts; goTo(Math.min(H, n + Number($('mt-speed').value))); draw(); if (n >= H) setPlaying(false); }
+      requestAnimationFrame(tick);
+    };
+    goTo(H);
+    $('mt-loading').hidden = true;
+    draw();
+    requestAnimationFrame(tick);
+    return { draw, ramp };
+  }
+
+  let MD = null, MT = null;
+  fetch('mdbench-motion.json').then(r => { if (!r.ok) throw new Error(r.status); return r.json(); }).then(data => {
+    MD = setupMD(data.md); MT = setupMetad(data.metad);
+  }).catch(() => {
+    $('md-loading').textContent = 'The trajectory file did not load. Reload the page to try again.';
+    $('mt-loading').textContent = 'The hills file did not load. Reload the page to try again.';
+  });
+
+  const retheme = () => { readTokens(); if (MT) MT.ramp(); if (MD) { MD.reset(); MD.draw(); } if (MT) MT.draw(); };
+  matchMedia('(prefers-color-scheme: dark)').addEventListener('change', retheme);
+  new MutationObserver(retheme).observe(document.documentElement, { attributes: true, attributeFilter: ['data-theme'] });
+  new ResizeObserver(() => { if (MD) { MD.reset(); MD.draw(); } if (MT) MT.draw(); }).observe(document.querySelector('.wrap'));
+})();
+</script>
+
+</body>
+</html>
