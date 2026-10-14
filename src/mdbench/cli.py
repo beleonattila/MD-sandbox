@@ -1,4 +1,4 @@
-"""Command line: ``python -m mdbench {run,score,report,bench,list}``.
+"""Command line: ``python -m mdbench {run,score,report,bench,export-motion,list}``.
 
 ``run <config.yml>`` resolves the config, creates the run directory, writes
 ``config.resolved.yml`` there, dispatches on (branch, system, level, method) to the
@@ -81,6 +81,11 @@ def main(argv: Sequence[str] | None = None) -> int:
     b.add_argument("config", nargs="?", default=None)
     b.add_argument("--n-atoms", type=int, default=None)
 
+    mo = sub.add_parser("export-motion", help="ala2 MD + metad trajectories as viewer JSON")
+    mo.add_argument("md_rep", help="an md_histogram replicate dir, e.g. runs/c/ala2/L2-.../rep_2")
+    mo.add_argument("metad_rep", help="a wtmetad_reweight replicate dir")
+    mo.add_argument("-o", "--out", default="runs/c/ala2/motion.json")
+
     lst = sub.add_parser("list", help="list registered runners")
     lst.add_argument("branch", nargs="?", default=None)
 
@@ -109,6 +114,13 @@ def main(argv: Sequence[str] | None = None) -> int:
             f"[bench] {summ['n_atoms']} atoms on {summ['gpu']} ({summ['platform']}, "
             f"{summ['precision']}): {summ['ns_per_day']:.1f} ns/day"
         )
+    elif a.cmd == "export-motion":
+        from pathlib import Path
+
+        from mdbench.branch_c.motion import export_motion
+
+        path = export_motion(Path(a.md_rep), Path(a.metad_rep), Path(a.out))
+        print(f"[export-motion] -> {path}")
     elif a.cmd == "list":
         from mdbench.registry import load_branch
 
