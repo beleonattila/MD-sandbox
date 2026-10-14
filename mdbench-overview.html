@@ -108,8 +108,8 @@ table.sys{border-collapse:collapse;min-width:640px;width:100%;font-family:var(--
 .rules li{border-top:1px solid var(--rule);padding-top:10px}
 .rules b{font-family:var(--sans);font-weight:600}
 footer{font-family:var(--sans);font-size:.8rem;color:var(--ink3);border-top:1px solid var(--rule);padding-top:14px;line-height:1.7;overflow-wrap:anywhere}
-footer a{color:var(--ink2);text-underline-offset:2px}
-footer a:hover,footer a:focus-visible{color:var(--ink)}
+footer a,.note a{color:var(--ink2);text-underline-offset:2px}
+footer a:hover,footer a:focus-visible,.note a:hover,.note a:focus-visible{color:var(--ink)}
 
 /* branch C progress */
 .prog{border-top:3px solid var(--C);padding-top:18px}
@@ -219,7 +219,7 @@ footer a:hover,footer a:focus-visible{color:var(--ink)}
     <figure><figcaption>ΔG(αR) <span>kcal/mol · ±1σ</span></figcaption><svg id="fp-ar" viewBox="0 0 480 270" role="img" aria-label="Forest plot of dG alphaR by method"></svg></figure>
     <figure><figcaption>ΔG(αL/C7ax) <span>kcal/mol · ±1σ</span></figcaption><svg id="fp-al" viewBox="0 0 480 270" role="img" aria-label="Forest plot of dG alphaL by method"></svg></figure>
   </div>
-  <p class="note">Each panel has its own scale. Rows with no point mean the method never sampled that basin. Cost is wall-clock on the RTX 4050; the MSM's cost includes the L2 trajectories it is built from. L0 and L1 use GBn2 implicit solvent; L2 and L3 use explicit TIP3P.</p>
+  <p class="note">Each panel has its own scale. Rows with no point mean the method never sampled that basin. Cost is wall-clock on the RTX 4050; the MSM's cost includes the L2 trajectories it is built from. L0 and L1 use GBn2 implicit solvent; L2 and L3 use explicit TIP3P. To see the L2 and metadynamics runs play out, open the <a href="mdbench-motion.html">motion page</a>.</p>
 
   <ul class="findings">
     <li><b>Three methods agree on αR.</b> Unbiased MD, metadynamics and the MSM all give ΔG ≈ 0.47–0.48 kcal/mol, about 30% population.</li>
@@ -305,7 +305,7 @@ footer a:hover,footer a:focus-visible{color:var(--ink)}
   </ul>
 </section>
 
-<footer>Summarised from README.md, CLAUDE.md, docs/, intent/ and results/c.parquet in the mdbench repo, 10 October 2026. Branch C is in progress; branches A, B and D are still at the planning stage.<br>Public page: <a href="https://beleonattila.github.io/MD-sandbox/mdbench-overview.html">beleonattila.github.io/MD-sandbox/mdbench-overview.html</a> · Source: <a href="https://github.com/beleonattila/MD-sandbox">github.com/beleonattila/MD-sandbox</a></footer>
+<footer>Summarised from README.md, CLAUDE.md, docs/, intent/ and results/c.parquet in the mdbench repo, 10 October 2026. Branch C is in progress; branches A, B and D are still at the planning stage.<br>Public page: <a href="https://beleonattila.github.io/MD-sandbox/mdbench-overview.html">beleonattila.github.io/MD-sandbox/mdbench-overview.html</a> · Motion: <a href="https://beleonattila.github.io/MD-sandbox/mdbench-motion.html">mdbench-motion.html</a> · Source: <a href="https://github.com/beleonattila/MD-sandbox">github.com/beleonattila/MD-sandbox</a></footer>
 </div>
 
 <script>
