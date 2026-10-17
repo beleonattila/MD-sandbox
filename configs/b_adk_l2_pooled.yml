@@ -1,0 +1,21 @@
+# L2 pooled: the short open-start MD replicates analysed together (no new MD).
+#   RUN make run CONFIG=configs/b_adk_l2_pooled.yml   (minutes, CPU) after the 3 replicates
+# Records how many replicates visited the closed state, and the PCA/RMSF of all frames.
+# wall_clock_s on the rows is the summed MD cost of the pooled runs.
+extends: b_adk_base.yml
+level: L2
+method: pooled_short_md
+
+pooled:
+  runs:
+    - runs/b/adk/L2-pca_short_md-r*
+  start_structure: 4AKE              # only runs started from the open crystal
+  min_runs: 3
+  n_boot: 200
+  seed: 12
+
+analysis:
+  discard_ps: 1000.0
+
+md:
+  platform: CPU                      # not used: no MD

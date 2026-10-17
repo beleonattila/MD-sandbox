@@ -1,0 +1,58 @@
+# Shared base for every adenylate kinase branch-B run (extended by b_adk_*.yml).
+# The structures are branch C's prepared AdK endpoints (systems/adk/prep.yml); branch B
+# scores how well a method's predicted motion matches the crystal open->closed
+# displacement. Targets and estimators: src/mdbench/branch_b/adk.py.
+branch: b
+system: adk        # rows override `system` with the prediction target
+
+adk:
+  prep_record: systems/adk/prep.yml
+  endpoints:                         # protein-only, H added, Ap5A and waters removed
+    open:
+      4AKE_A: systems/adk/prepared/4AKE_A_protein.pdb
+      4AKE_B: systems/adk/prepared/4AKE_B_protein.pdb
+    closed:
+      1AKE_A: systems/adk/prepared/1AKE_A_protein.pdb
+      1AKE_B: systems/adk/prepared/1AKE_B_protein.pdb
+  raw_pdb:                           # crystal C-alpha B-factors are read from these
+    4AKE: systems/adk/raw/4AKE.pdb
+    1AKE: systems/adk/raw/1AKE.pdb
+  solvated_pdb: systems/adk/prepared/4AKE_A_solvated.pdb.gz   # MD start: apo open, 40,119 atoms
+  md_start_copy: 4AKE_A              # the crystal copy the solvated start was built from
+
+reference:
+  # Overlap targets: 1.0 by definition (displacement wholly inside the predicted
+  # subspace). See data/experimental/adk_crystal_endpoints.yml.
+  overlap_value: 1.0
+  overlap_source: "doi:10.1016/S0969-2126(96)00018-4 (4AKE); doi:10.1016/0022-2836(92)90582-5 (1AKE)"
+
+analysis:
+  n_modes: 10                        # K: lowest K modes / top K PCs scored against the displacement
+  # Closed box, identical to branch C (c_adk_base.yml): both domain angles below the
+  # midpoints between the 4AKE and 1AKE crystal values. A definition, not data.
+  closed:
+    theta_nmp_max: 58.3
+    theta_lid_max: 125.9
+  discard_ps: 0.0
+
+system_build:                        # explicit solvent (L2/L3), identical to branch C
+  forcefield: [amber14-all.xml, amber14/tip3p.xml]   # Amber ff14SB + TIP3P
+  nonbonded_cutoff_nm: 1.0
+  switch_distance_nm: null
+  ewald_error_tolerance: 5.0e-4
+  constraints: HBonds
+  rigid_water: true
+  hydrogen_mass_amu: null
+
+md:
+  platform: CUDA
+  fallback_platform: null
+  precision: mixed
+  temperature_K: 300.0
+  friction_per_ps: 1.0
+  timestep_fs: 2.0
+  pressure_bar: 1.0
+  barostat_interval: 25
+  seed: 20261016
+  xtc_selection: solute              # protein only (docs/HARDWARE.md)
+  traj_interval_steps: 5000          # 10 ps/frame

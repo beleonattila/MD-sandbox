@@ -1,0 +1,5 @@
+# L2 short-MD replicate 1 (see b_adk_l2_pca.yml for cost).
+extends: b_adk_l2_pca.yml
+replicate: 1
+md:
+  seed: 2002

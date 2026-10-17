@@ -1,0 +1,23 @@
+# L1: all-atom normal modes of each minimised crystal copy, GBn2 implicit solvent.
+#   RUN make run CONFIG=configs/b_adk_l1_nma.yml
+# Cost (measured 2026-10-16 on the RTX 4050): one double-precision GBn2 force evaluation
+# of 3,341 atoms takes 0.059 s, so the 6 x 3,341 = 20,046-evaluation central-difference
+# Hessian takes ~20 min per copy; minimisation ~5 min; diagonalisation ~35 s (CPU,
+# 10,023 x 10,023, ~4 GB RAM peak). Four copies: ~1.7 h. VRAM: < 0.5 GB.
+extends: b_adk_base.yml
+level: L1
+method: nma_allatom_gbn2
+
+nma:
+  forcefield: [amber14-all.xml, implicit/gbn2.xml]   # ff14SB + GBn2, as branch C L0
+  platform: CUDA
+  pre_minimise_precision: mixed
+  pre_minimise_stages:               # fast; stalls near 0.5 kJ/mol/nm rms gradient
+    - {tolerance_kj_mol_nm: 0.01, max_iterations: 0}
+  hessian_precision: double
+  minimise_stages:                   # double precision; reaches ~0.05 kJ/mol/nm rms
+    - {tolerance_kj_mol_nm: 0.01, max_iterations: 20000}
+    - {tolerance_kj_mol_nm: 0.001, max_iterations: 20000}
+  hessian_step_nm: 1.0e-5
+  temperature_K: 300.0
+  n_modes_saved: 50

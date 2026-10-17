@@ -1,0 +1,13 @@
+# L0 null: a random K-dimensional internal subspace for the overlap targets, and
+# squared distance from the centroid for the B-factor targets. The thing to beat.
+#   RUN make run CONFIG=configs/b_adk_l0_null.yml     (seconds, CPU)
+extends: b_adk_base.yml
+level: L0
+method: null_random_centroid
+
+null_model:
+  n_draws: 2000
+  seed: 11
+
+md:
+  platform: CPU                      # not used: no MD

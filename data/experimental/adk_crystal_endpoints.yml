@@ -1,0 +1,42 @@
+# Ground truth for branch B (conformational change) on adenylate kinase: the crystal
+# open and closed endpoints. Structural data, not an ensemble measurement.
+# Used by src/mdbench/branch_b/adk.py; structure provenance in systems/adk/SOURCES.yml.
+system: adk
+observable: open_closed_displacement_and_ca_bfactors
+value: null
+data_file:
+  open: systems/adk/raw/4AKE.pdb     # apo, open; chains A and B
+  closed: systems/adk/raw/1AKE.pdb   # with Ap5A, closed; chains A and B (Ap5A removed in prep)
+derived_targets:
+  displacement: >-
+    C-alpha coordinates of residues 1-214, closed minus open after least-squares
+    superposition, per pair of crystallographic copies (4 pairs). Predictions are scored
+    by overlap with it; overlap targets use reference 1.0, the overlap the displacement
+    has with itself (Tama & Sanejouand 2001, doi:10.1093/protein/14.1.1, define the
+    measure). The reference is exact by construction, so it has no uncertainty of its own.
+  bfactors: >-
+    C-alpha isotropic B-factors of each chain (first altloc), read from the raw files.
+    Predicted mean-square fluctuations are compared by Pearson r. These rows carry a null
+    reference: B-factors include static disorder, lattice contacts and refinement
+    restraints, so r = 1 is not an achievable target and 1 - r is not an error.
+uncertainty: null
+uncertainty_kind: not_reported
+units: Angstrom (coordinates), Angstrom^2 (B-factors)
+temperature_K: null                 # not given in a form used here; crystal data
+buffer: null                        # crystallisation conditions do not enter the comparison
+pH: null
+doi:
+  open: 10.1016/S0969-2126(96)00018-4
+  closed: 10.1016/0022-2836(92)90582-5
+location: PDB entries 4AKE (2.2 A) and 1AKE (2.0 A); ATOM records, columns 61-66 for B
+method: X-ray diffraction
+notes: >-
+  4AKE: Mueller, Schlauderer, Reinstein, Schulz (1996) Structure 4:147-156. 1AKE: Mueller,
+  Schulz (1992) J. Mol. Biol. 224:159-177. Both DOIs were checked through api.crossref.org
+  on 2026-10-10 (systems/adk/SOURCES.yml). 1AKE is ligand-bound; using it as the closed
+  apo endpoint is a modelling choice shared with branch C. Method citations (definitions
+  only, not data), checked through api.crossref.org on 2026-10-16: Tama & Sanejouand,
+  Protein Eng. 14:1-6 (2001), doi:10.1093/protein/14.1.1 (overlap); Atilgan et al.,
+  Biophys. J. 80:505-515 (2001), doi:10.1016/S0006-3495(01)76033-X (ANM).
+added_by: Claude (branch-B build), for Attila Beleon
+verified_on: 2026-10-10

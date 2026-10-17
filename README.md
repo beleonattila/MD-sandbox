@@ -79,4 +79,7 @@ held fixed, so any rented run records its GPU on the row.
 Branch C is in progress. Alanine dipeptide has run through L0–L3. Adenylate kinase
 is prepared, with L0–L1 run and the L2/L3 production runs configured but not started.
 Experimental references are not yet attached, so nothing is scored against experiment.
-Branches A, B and D are at the planning stage.
+Branch B is in progress: adenylate kinase has run through L0–L2 (ANM, all-atom normal
+modes, 3 × 10 ns MD) and is scored against the crystal open→closed displacement; the
+ten softest ANM modes already capture 97 % of it, and none of the three MD replicates
+closed. Branches A and D are at the planning stage.

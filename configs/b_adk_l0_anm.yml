@@ -1,0 +1,15 @@
+# L0: anisotropic network model on the crystal C-alpha atoms (Atilgan et al. 2001).
+#   RUN make run CONFIG=configs/b_adk_l0_anm.yml      (seconds, CPU)
+# Uncertainty combines the spread over crystal copies with the sensitivity to the
+# cutoff (cutoff_sensitivity_A); 15 A is the commonly used ANM cutoff for C-alpha nodes.
+extends: b_adk_base.yml
+level: L0
+method: anm_ca
+
+anm:
+  cutoff_A: 15.0
+  cutoff_sensitivity_A: [12.0, 18.0]
+  gamma: 1.0
+
+md:
+  platform: CPU                      # not used: no MD

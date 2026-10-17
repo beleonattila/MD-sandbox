@@ -1,0 +1,24 @@
+# L2: one short explicit-solvent MD run from the open crystal (4AKE chain A); PCA of the
+# C-alpha fluctuations, RMSF vs crystal B-factors, closest approach to 1AKE.
+#   RUN make run CONFIG=configs/b_adk_l2_pca.yml      (replicate 0)
+#   replicates: b_adk_l2_pca_r1.yml, b_adk_l2_pca_r2.yml; then b_adk_l2_pooled.yml
+# Cost per replicate: 10 ns + 0.5 ns equilibration of 40,119 atoms at the branch-C
+# smoke-measured 153 ns/day -> ~1.7 h (under the 6 h ask-first limit). VRAM ~1 GB.
+# Storage: 1000 frames x 3,341 protein atoms at ~12.8 KB/frame -> ~13 MB per replicate.
+extends: b_adk_base.yml
+level: L2
+method: pca_short_md
+replicate: 0
+
+md:
+  seed: 2001
+  minimize: true
+  minimize_max_iterations: 0
+  equilibration_steps: 250000        # 0.5 ns NPT, not written
+  n_steps: 5000000                   # 10 ns production
+  traj_interval_steps: 5000          # 10 ps/frame, protein only
+  log_interval_steps: 50000
+  checkpoint_interval_steps: 500000  # 1 ns; resumable with md.resume
+
+analysis:
+  discard_ps: 1000.0                 # first 1 ns of production left out of PCA/RMSF

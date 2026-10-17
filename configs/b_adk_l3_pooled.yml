@@ -1,0 +1,23 @@
+# L3: long, parallel unbiased MD -- the branch-C apo AdK production runs, analysed for
+# the open->closed transition (no new MD in this run).
+#   RUN make run CONFIG=configs/b_adk_l3_pooled.yml   (minutes, CPU)
+# NOT RUN YET. Needs branch C's L2 runs (c_adk_l2_unbiased*.yml, 100 ns each, ~16 h per
+# replicate; ask before launching, CLAUDE.md rule 6). Replicates r3/r4 start from the
+# closed crystal and are excluded here by start_structure.
+extends: b_adk_base.yml
+level: L3
+method: pooled_long_md
+
+pooled:
+  runs:
+    - runs/c/adk/L2-unbiased_md-r*
+  start_structure: 4AKE
+  min_runs: 2
+  n_boot: 200
+  seed: 13
+
+analysis:
+  discard_ps: 10000.0                # as branch C: first 10 ns left out of PCA/RMSF
+
+md:
+  platform: CPU                      # not used: no MD
