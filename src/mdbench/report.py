@@ -80,11 +80,18 @@ def report_all(directory: Path | None = None, out_dir: Path | None = None) -> li
     """Plot every ``results/<branch>.parquet``."""
     src = directory or results_dir()
     out = out_dir or (REPO_ROOT / "reports")
+    from mdbench.registry import get_plotter
+
     paths = []
     for pq_file in sorted(src.glob("*.parquet")):
         p = plot_branch(pq_file.stem, out, src)
         if p is not None:
             paths.append(p)
+        extra = get_plotter(pq_file.stem)
+        if extra is not None:
+            q = extra(read_results(pq_file.stem, src).to_pandas(), out)
+            if q is not None:
+                paths.append(q)
     return paths
 
 

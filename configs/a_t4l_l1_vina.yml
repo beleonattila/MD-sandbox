@@ -1,0 +1,16 @@
+# L1: AutoDock Vina 1.2.7 score into one rigid receptor, 181L (WT* + L99A, benzene removed,
+# protonated as prepared), box centred on the crystal benzene. Ligands as rigid ETKDG
+# conformer ensembles; never sees the bound poses. CPU only.
+#   RUN make run CONFIG=configs/a_t4l_l1_vina.yml
+extends: a_t4l_base.yml
+level: L1
+method: vina_rigid_ensemble
+
+dock:
+  receptor_pdb: systems/t4l/prepared/t4l_benzene/protein.pdb
+  center_ligand_of: t4l_benzene      # box centre: that ligand's crystal pose
+  box_A: 16.0
+  exhaustiveness: 16
+  n_conformers: 10
+  seeds: [1, 2, 3]
+  inside_cavity_A: 3.0               # diagnostic only: best pose centroid within this of the box centre

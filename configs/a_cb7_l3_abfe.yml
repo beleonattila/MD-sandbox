@@ -1,0 +1,32 @@
+# L3: absolute binding free energy, alchemical decoupling with Hamiltonian replica exchange
+# and MBAR (src/mdbench/engines/abfe.py). Runs in mdbench-fe:
+#   RUN ~/.local/bin/micromamba run -r ~/micromamba -n mdbench-fe make run CONFIG=configs/a_cb7_l3_abfe_<guest>.yml
+# One config per guest (a_cb7_l3_abfe_<guest>.yml extends this and sets cb7.guests).
+# VRAM: one ~3.5k-atom context per state cache, well under 1 GB.
+extends: a_cb7_base.yml
+level: L3
+method: abfe_hrex_mbar
+
+abfe:
+  restraint_sigma_nm: 0.1            # COM-COM harmonic restraint, K = kT / sigma^2 (~248 kJ/mol/nm^2)
+  coalchemical_ions: true            # decouple |q| Cl- with a cationic guest: net-neutral perturbation
+  softcore_alpha: 0.5
+  seed: 4101                         # pre-equilibration velocities
+  pre_equilibration_steps: 50000     # 100 ps plain NPT MD of the coupled system before HREX
+  steps_per_iteration: 500           # 1 ps between exchange attempts
+  reassign_velocities: true          # Maxwell-Boltzmann velocities each iteration (as in YANK)
+  minimize_max_iterations: 1000
+  equilibration_iterations: 100      # 100 ps per state, discarded, before production
+  checkpoint_interval: 100
+  delete_nc_after_analysis: true     # keep u_kln.npz and the summary, drop the NetCDF
+  n_iterations:                      # pilot-sized; the forward-convergence diagnostic says whether it is enough
+    complex: 2000                    # 2 ns per state
+    solvent: 1000                    # 1 ns per state
+  schedule:
+    complex:
+      lambda_restraints:     [0.0, 0.25, 0.5, 1.0,  1.0, 1.0, 1.0, 1.0, 1.0, 1.0,  1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0]
+      lambda_electrostatics: [1.0, 1.0,  1.0, 1.0,  0.8, 0.6, 0.4, 0.2, 0.0, 0.0,  0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0]
+      lambda_sterics:        [1.0, 1.0,  1.0, 1.0,  1.0, 1.0, 1.0, 1.0, 1.0, 0.9,  0.8, 0.7, 0.6, 0.5, 0.45, 0.4, 0.35, 0.3, 0.25, 0.2, 0.15, 0.1, 0.05, 0.0]
+    solvent:
+      lambda_electrostatics: [1.0, 0.8, 0.6, 0.4, 0.2, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0]
+      lambda_sterics:        [1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 0.9, 0.8, 0.7, 0.6, 0.5, 0.45, 0.4, 0.35, 0.3, 0.25, 0.2, 0.15, 0.1, 0.05, 0.0]

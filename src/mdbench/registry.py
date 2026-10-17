@@ -35,6 +35,7 @@ Key = tuple[str, str, str, str]
 
 _RUNNERS: dict[Key, RunFn] = {}
 _SCORERS: dict[str, ScoreFn] = {}
+_PLOTTERS: dict[str, Callable[..., Any]] = {}
 
 
 def _key(branch: str, system: str, level: str, method: str) -> Key:
@@ -70,6 +71,20 @@ def register_scorer(branch: str) -> Callable[[ScoreFn], ScoreFn]:
     return deco
 
 
+def register_plotter(branch: str) -> Callable[[Callable[..., Any]], Callable[..., Any]]:
+    """Decorator registering an extra report plot for ``mdbench report``.
+
+    Signature: ``fn(table: pandas.DataFrame, out_dir: Path) -> Path | None``. It is drawn in
+    addition to the generic accuracy-versus-cost plot.
+    """
+
+    def deco(fn: Callable[..., Any]) -> Callable[..., Any]:
+        _PLOTTERS[str(branch).lower()] = fn
+        return fn
+
+    return deco
+
+
 def load_branch(branch: str) -> None:
     """Import ``mdbench.branch_<branch>`` and all of its submodules (if it exists)."""
     name = f"mdbench.branch_{str(branch).lower()}"
@@ -100,16 +115,24 @@ def get_scorer(branch: str) -> ScoreFn | None:
     return _SCORERS.get(str(branch).lower())
 
 
+def get_plotter(branch: str) -> Callable[..., Any] | None:
+    """Branch-specific extra report plot, or ``None``."""
+    load_branch(branch)
+    return _PLOTTERS.get(str(branch).lower())
+
+
 def registered() -> list[Key]:
     """All registered runner keys (for listing)."""
     return sorted(_RUNNERS)
 
 
 __all__ = [
+    "get_plotter",
     "get_runner",
     "get_scorer",
     "load_branch",
     "register",
+    "register_plotter",
     "register_scorer",
     "registered",
 ]

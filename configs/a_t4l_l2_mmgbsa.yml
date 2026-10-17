@@ -1,0 +1,21 @@
+# L2: MM/GBSA (OBC2, mbondi2, no entropy) on explicit-solvent MD of each complex,
+# 3 independent replicates per ligand. ~35k atoms per complex.
+#   RUN make run CONFIG=configs/a_t4l_l2_mmgbsa.yml
+# Cost: 7 ligands x 3 replicates x (0.1 ns eq + 1 ns) = 23 ns; the measured ns/day is in
+# l2_mmgbsa.json. Storage: protein + ligand only, 100 frames x ~2.6k atoms per replicate.
+extends: a_t4l_base.yml
+level: L2
+method: mmgbsa_obc2
+
+md:
+  equilibration_steps: 50000         # 0.1 ns NPT, not written
+  n_steps: 500000                    # 1 ns production
+  traj_interval_steps: 5000          # 10 ps/frame, protein + ligand only
+  log_interval_steps: 50000
+  checkpoint_interval_steps: 250000
+
+mmgbsa:
+  seeds: [3201, 3202, 3203]
+  discard_ps: 100.0
+  n_blocks: 5
+  bound_com_nm: 0.4                  # diagnostic: ligand centre within this of the pocket C-alpha centre

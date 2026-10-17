@@ -1,0 +1,33 @@
+# T4 lysozyme L99A preparation, branch A.
+#   RUN python -m mdbench.branch_a.t4l_prep configs/a_t4l_prep.yml
+# Inputs only. Writes systems/t4l/prepared/<ligand>/* (parameterised, solvated systems) and
+# the full preparation record systems/t4l/prep.yml. Not a `mdbench run` config.
+prep:
+  ground_truth: data/experimental/t4l_l99a_binding_dG.yml
+  raw_dir: systems/t4l/raw            # PDB files from files.rcsb.org, committed
+  out_dir: systems/t4l/prepared
+  record: systems/t4l/prep.yml
+  chain: A
+  # Receptor per ligand. The measured dG are for the cys-free WT* (C54T/C97A) + L99A protein
+  # (Morton 1995). Where that protein was crystallised with the ligand, its own structure is
+  # used. Toluene and propylbenzene only have structures on a different background (Merski
+  # 2015); each pose is moved into the WT* structure whose cavity fits it, by superposing the
+  # C-alpha atoms of residues within pocket_cutoff_nm of the ligand: toluene into 181L
+  # (benzene), propylbenzene into 186L (butylbenzene). The larger alkylbenzenes open helix F;
+  # propylbenzene placed in the closed 181L cavity clashes (0.86 A contact).
+  receptor:
+    default: own_entry
+    wt_star_entries: [181L, 182L, 186L, 187L, 1NHB]
+    fallback_entry: {4W53: 181L, 4W55: 186L}
+  pocket_cutoff_nm: 1.0
+  altloc: first
+  crystal_waters: remove             # the L99A cavity is dry when empty (Mobley & Gilson 2017)
+  remove_hetero: [HED, CL, EPE, BME, PO4, HOH]
+  ph: 5.5                            # experiment (Morton 1995)
+  forcefield: [openff-2.3.0.offxml, ff14sb_off_impropers_0.0.4.offxml]   # Sage 2.3.0 ligand + ff14SB protein
+  box_shape: rhombic_dodecahedron
+  padding_nm: 1.2
+  nacl_molar: 0.05                   # stands in for 50 mM sodium acetate (acetate not modelled)
+  packmol_tolerance_nm: 0.2
+  target_density_g_ml: 0.9
+  restraint_ca_cutoff_nm: 0.8        # ABFE COM restraint anchor: C-alpha atoms within this of the ligand centre

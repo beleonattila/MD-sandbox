@@ -20,8 +20,9 @@ export PYTHONPATH := $(CURDIR)/src$(if $(PYTHONPATH),:$(PYTHONPATH))
 help:
 	@echo "targets: env test lint run CONFIG=... score BRANCH=... report clean-runs [DAYS=n] bench [N_ATOMS=n]"
 
-# Creates mdbench-md from the explicit lock file when present, else from the YAML solve.
-# mdbench-fe and mdbench-ml are deferred (see CLAUDE.md) and not created here.
+# Creates $(ENV_NAME) (default mdbench-md) from its explicit lock file when present, else
+# from the YAML solve. `make env ENV_NAME=mdbench-fe` builds the L3 alchemy environment.
+# mdbench-ml is deferred (see CLAUDE.md) and has no spec yet.
 env:
 	@if $(MICROMAMBA) env list -r $(MAMBA_ROOT) | awk '{print $$1}' | grep -qx '$(ENV_NAME)'; then \
 		echo "env $(ENV_NAME) already exists under $(MAMBA_ROOT); remove it first to rebuild"; \
@@ -30,7 +31,7 @@ env:
 	else \
 		$(MICROMAMBA) create -y -r $(MAMBA_ROOT) -f env/$(ENV_NAME).yml; \
 	fi
-	@echo "mdbench-fe / mdbench-ml: deferred, not created"
+	@echo "mdbench-ml: deferred, not created"
 
 test:
 	$(PYTHON) -m pytest -q

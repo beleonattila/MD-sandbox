@@ -1,0 +1,14 @@
+# L1: AutoDock Vina 1.2.7 score, rigid CB7 (the benchmark's HF-minimised host) and a rigid
+# ensemble of ETKDG ligand conformers. Never sees the bound poses. CPU only, ~1 min/guest.
+#   RUN make run CONFIG=configs/a_cb7_l1_vina.yml
+extends: a_cb7_base.yml
+level: L1
+method: vina_rigid_ensemble
+
+dock:
+  receptor_sdf: systems/cb7/raw/host-cb7.sdf
+  box_A: 20.0                        # cube centred on the host centroid; covers cavity and portals
+  exhaustiveness: 16
+  n_conformers: 10                   # rigid ligand conformers per seed (MMFF-relaxed ETKDGv3)
+  seeds: [1, 2, 3]                   # independent docking runs; their spread is the uncertainty
+  inside_cavity_A: 2.5               # diagnostic only: best pose centroid within this of host centroid

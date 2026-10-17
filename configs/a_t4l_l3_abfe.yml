@@ -1,0 +1,31 @@
+# L3: absolute binding free energy for T4L L99A ligands. NOT RUN: ~35k atoms x 24 complex
+# states x 2 ns (+ the solvent leg) is roughly 10-20 h per ligand here, above the 6 h
+# ask-first limit; needs approval per CLAUDE.md before any T4L ABFE is started.
+#   RUN ~/.local/bin/micromamba run -r ~/micromamba -n mdbench-fe make run CONFIG=configs/a_t4l_l3_abfe_<ligand>.yml
+extends: a_t4l_base.yml
+level: L3
+method: abfe_hrex_mbar
+
+abfe:
+  restraint_sigma_nm: 0.1            # COM restraint to C-alpha atoms within 0.8 nm of the ligand (systems/t4l/prep.yml)
+  coalchemical_ions: true            # ligands are neutral: no ions are decoupled
+  softcore_alpha: 0.5
+  seed: 4201
+  pre_equilibration_steps: 50000
+  steps_per_iteration: 500
+  reassign_velocities: true
+  minimize_max_iterations: 1000
+  equilibration_iterations: 100
+  checkpoint_interval: 100
+  delete_nc_after_analysis: true
+  n_iterations:
+    complex: 2000
+    solvent: 1000
+  schedule:
+    complex:
+      lambda_restraints:     [0.0, 0.25, 0.5, 1.0,  1.0, 1.0, 1.0, 1.0, 1.0, 1.0,  1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0]
+      lambda_electrostatics: [1.0, 1.0,  1.0, 1.0,  0.8, 0.6, 0.4, 0.2, 0.0, 0.0,  0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0]
+      lambda_sterics:        [1.0, 1.0,  1.0, 1.0,  1.0, 1.0, 1.0, 1.0, 1.0, 0.9,  0.8, 0.7, 0.6, 0.5, 0.45, 0.4, 0.35, 0.3, 0.25, 0.2, 0.15, 0.1, 0.05, 0.0]
+    solvent:
+      lambda_electrostatics: [1.0, 0.8, 0.6, 0.4, 0.2, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0]
+      lambda_sterics:        [1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 0.9, 0.8, 0.7, 0.6, 0.5, 0.45, 0.4, 0.35, 0.3, 0.25, 0.2, 0.15, 0.1, 0.05, 0.0]

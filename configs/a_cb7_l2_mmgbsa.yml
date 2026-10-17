@@ -1,0 +1,21 @@
+# L2: MM/GBSA (OBC2, mbondi2, no entropy) on explicit-solvent MD of each complex,
+# 3 independent replicates per guest. ~3.5k atoms per complex.
+#   RUN make run CONFIG=configs/a_cb7_l2_mmgbsa.yml
+# Cost: 15 guests x 3 replicates x (0.1 ns eq + 2 ns) -- see the measured ns/day in
+# l2_mmgbsa.json. Storage: host + guest only, 200 frames x ~165 atoms per replicate (<1 MB).
+extends: a_cb7_base.yml
+level: L2
+method: mmgbsa_obc2
+
+md:
+  equilibration_steps: 50000         # 0.1 ns NPT, not written
+  n_steps: 1000000                   # 2 ns production
+  traj_interval_steps: 5000          # 10 ps/frame, host + guest only
+  log_interval_steps: 50000
+  checkpoint_interval_steps: 500000
+
+mmgbsa:
+  seeds: [3101, 3102, 3103]
+  discard_ps: 200.0                  # first 0.2 ns of production left out
+  n_blocks: 5
+  bound_com_nm: 0.3                  # diagnostic: guest COM within this of host COM counts as bound

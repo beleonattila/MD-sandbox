@@ -1,0 +1,23 @@
+# Shared base for every CB7 branch-A run (extended by a_cb7_*.yml).
+# Prepared inputs come from `python -m mdbench.branch_a.cb7_prep configs/a_cb7_prep.yml`;
+# their checksums and every preparation choice are in systems/cb7/prep.yml.
+branch: a
+system: cb7        # rows override `system` with the guest id (cb7_s<set>_g<id>)
+
+cb7:
+  ground_truth: data/experimental/cb7_binding_dG.yml
+  prep_record: systems/cb7/prep.yml
+  prepared_dir: systems/cb7/prepared
+  poses_dir: systems/cb7/poses
+  guests: all                        # or a list of guest ids
+
+md:                                  # explicit solvent, used by L2 and (sampling settings) L3
+  platform: CUDA
+  precision: mixed
+  temperature_K: 298.15              # experiment: 298 K
+  friction_per_ps: 1.0
+  timestep_fs: 2.0
+  pressure_bar: 1.0
+  barostat_interval: 25
+  minimize: true
+  minimize_tolerance_kj_mol_nm: 10.0

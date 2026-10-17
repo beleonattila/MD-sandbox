@@ -17,6 +17,7 @@ dependencies:
   - pdbfixer
   - deeptime                    # MSM estimation, implied timescales, CK test
   - pymbar=4                    # umbrella sampling / MBAR
+  - vina=1.2.7                  # branch A L1 docking score (added 2026-10-17; leaf package, no other change)
   - numpy
   - scipy
   - pandas

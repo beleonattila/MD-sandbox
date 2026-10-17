@@ -53,7 +53,7 @@ Budget for the Linux partition:
 | Ubuntu + desktop + tools | 30 GB |
 | Swap file | 8 GB |
 | `mdbench-md` environment | 10 GB |
-| `mdbench-fe` environment | 8 GB |
+| `mdbench-fe` environment | 11 GB (measured 2026-10-17; libtorch comes with OpenFE) |
 | `mdbench-ml` environment (deferred) | 15 GB |
 | conda package cache | 15 GB |
 | Reference data and model weights | 15 GB |

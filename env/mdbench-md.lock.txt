@@ -398,3 +398,4 @@ https://conda.anaconda.org/conda-forge/noarch/pymbar-4.2.0-pyha770c72_2.conda#c3
 https://conda.anaconda.org/conda-forge/noarch/tomli-2.5.0-pyh5ded981_0.conda#36d6a162326c52d6339c8b606f43932d
 https://conda.anaconda.org/conda-forge/noarch/pytest-9.1.1-pyhc364b38_2.conda#64c98a12c4e23eb238bf66bbecafdf3c
 https://conda.anaconda.org/conda-forge/linux-64/ruff-0.17.0-hf19af3b_0.conda#09bc0855b5d157b2d603a1dc4d0721b1
+https://conda.anaconda.org/conda-forge/linux-64/vina-1.2.7-py312h1289d80_0.conda#d66669e4965d884fa61aee4d1a1af07d

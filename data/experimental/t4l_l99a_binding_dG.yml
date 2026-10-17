@@ -1,0 +1,49 @@
+# Ground truth for branch A (binding affinity) on T4 lysozyme L99A (apolar cavity): standard
+# binding free energies of the Mobley-Gilson "Lysozyme L99A Set". Adopted as published, not
+# curated (docs/GROUND_TRUTH.md). Used by src/mdbench/branch_a/t4l.py.
+system: t4l
+observable: standard_binding_free_energy
+value: per ligand, see `ligands`
+data_file: null
+uncertainty: per ligand, see `ligands`
+uncertainty_kind: not_stated       # the table reports +- without saying sd or sem
+units: kcal/mol
+temperature_K: 302.0
+buffer: 50 mM sodium acetate (Morton et al. 1995)
+pH: 5.5
+doi: 10.1146/annurev-biophys-070816-033654
+location: >-
+  Mobley & Gilson (2017) Annu. Rev. Biophys. 46:531-558, "Proposed Lysozyme L99A Set
+  benchmark data" table. Values transcribed from the authors' perpetual-review source,
+  github.com/MobleyLab/benchmarksets, paper/benchmarkset.tex at commit
+  5233e0a1529b3c3ba9adf8c245de2b658e5fbf40 (table apolar_benchmark).
+method: isothermal titration calorimetry (Morton et al. 1995)
+primary_sources:
+  morton_1995:
+    doi: 10.1021/bi00027a006    # Morton, Baase & Matthews, Biochemistry 34:8564-8575 (1995)
+structure_sources:
+  morton_matthews_1995:
+    doi: 10.1021/bi00027a007    # 181L, 182L, 186L, 187L, 1NHB: cys-free WT* (C54T/C97A) + L99A
+  merski_2015:
+    doi: 10.1073/pnas.1500806112 # 4W53, 4W55: L99A on a different background (R12G, I137R, C54, C97)
+notes: >-
+  Seven binders with measured dG. The table's other entries are left out: hexylbenzene
+  (dG unknown, solubility) and two nonbinders (thieno[2,3-c]pyridine, phenol) have no
+  number to score against. The measured range is narrow (-4.67 to -6.70 kcal/mol, about
+  five times the 0.4 kcal/mol noise floor), so with seven ligands rank statistics have
+  very wide confidence intervals. Leakage: T4L L99A has been used to develop and tune
+  free-energy methods for two decades (docs/GROUND_TRUTH.md); good results here are weaker
+  evidence than on a less-trodden target. Larger ligands shift helix F (Merski 2015) and
+  p-xylene rotates the V111 side chain (table footnote d): conformational sampling, not
+  just the force field, limits accuracy. DOIs checked through api.crossref.org on 2026-10-17.
+added_by: Claude (branch-A build), for Attila Beleon
+verified_on: 2026-10-17
+ligands:
+  # pdb: structure the pose is taken from; resname: ligand residue in that entry
+  t4l_benzene:       {name: benzene,       pubchem_cid: 241,   smiles: "c1ccccc1",       dG_kcal_mol: -5.19, unc_kcal_mol: 0.16, source: morton_1995, pdb: 181L, resname: BNZ}
+  t4l_toluene:       {name: toluene,       pubchem_cid: 1140,  smiles: "Cc1ccccc1",      dG_kcal_mol: -5.52, unc_kcal_mol: 0.04, source: morton_1995, pdb: 4W53, resname: MBN}
+  t4l_ethylbenzene:  {name: ethylbenzene,  pubchem_cid: 7500,  smiles: "CCc1ccccc1",     dG_kcal_mol: -5.76, unc_kcal_mol: 0.07, source: morton_1995, pdb: 1NHB, resname: PYJ}
+  t4l_propylbenzene: {name: propylbenzene, pubchem_cid: 7668,  smiles: "CCCc1ccccc1",    dG_kcal_mol: -6.55, unc_kcal_mol: 0.02, source: morton_1995, pdb: 4W55, resname: 3H0}
+  t4l_butylbenzene:  {name: butylbenzene,  pubchem_cid: 7705,  smiles: "CCCCc1ccccc1",   dG_kcal_mol: -6.70, unc_kcal_mol: 0.02, source: morton_1995, pdb: 186L, resname: N4B}
+  t4l_p_xylene:      {name: p-xylene,      pubchem_cid: 7809,  smiles: "Cc1ccc(cc1)C",   dG_kcal_mol: -4.67, unc_kcal_mol: 0.06, source: morton_1995, pdb: 187L, resname: PXY}
+  t4l_benzofuran:    {name: benzofuran,    pubchem_cid: 9223,  smiles: "c1ccc2c(c1)cco2", dG_kcal_mol: -5.46, unc_kcal_mol: 0.03, source: morton_1995, pdb: 182L, resname: BZF}

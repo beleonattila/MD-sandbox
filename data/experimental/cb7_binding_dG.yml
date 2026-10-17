@@ -1,0 +1,58 @@
+# Ground truth for branch A (binding affinity) on cucurbit[7]uril (CB7): standard binding
+# free energies of the two CB7 benchmark sets proposed by Mobley & Gilson. Adopted as
+# published, not curated (docs/GROUND_TRUTH.md). Used by src/mdbench/branch_a/cb7.py.
+system: cb7
+observable: standard_binding_free_energy
+value: per guest, see `guests`
+data_file: null
+uncertainty: per guest, see `guests`
+uncertainty_kind: sem          # triplicate sd / sqrt(3), as stated in the source table footnote
+units: kcal/mol
+temperature_K: 298.0
+buffer: 50 mM sodium acetate in D2O
+pH: 4.74
+doi: 10.1146/annurev-biophys-070816-033654
+location: >-
+  Mobley & Gilson (2017) Annu. Rev. Biophys. 46:531-558, "Proposed CB7 Set 1 benchmark data"
+  and "Proposed CB7 Set 2 benchmark data" tables. Values transcribed from the authors'
+  perpetual-review source, github.com/MobleyLab/benchmarksets, paper/benchmarkset.tex at
+  commit 5233e0a1529b3c3ba9adf8c245de2b658e5fbf40 (tables cb7_benchmark1, cb7_benchmark2).
+method: 1H NMR competition / direct binding (as stated in the source table footnote)
+primary_sources:
+  liu_2005:
+    doi: 10.1021/ja055013x      # Liu et al., JACS 127:15959-15967 (2005); all guests except S1-5
+  cao_2014:
+    doi: 10.1002/anie.201309635 # Cao et al., Angew. Chem. Int. Ed. 53:988-993 (2014); guest S1-5
+notes: >-
+  Experiments in 50 mM sodium acetate buffer: Na+ binds the CB7 portals and acetic acid can
+  compete for the cavity; the benchmark paper notes buffer changes move measured values by
+  2.5-2.8 kcal/mol. The simulations here model the salt as NaCl (see systems/cb7/prep.yml)
+  and do not model acetate, so a systematic offset is expected and ranking (Spearman,
+  pairwise accuracy) is the primary score. Reported uncertainties (0.02-0.09) are far below
+  the 0.4 kcal/mol noise floor in docs/GROUND_TRUTH.md; the floor, not these values, limits
+  what a comparison can resolve. Guest S1-18 (1-adamantanecarboxylic acid) is ~1:1
+  protonated at pH 4.74 per the benchmark README; the neutral (COOH) form, file guest-18, is
+  simulated. The source text gives the range as -5.99 to -17.19, which predates S1-5
+  (-18.22, Cao 2014) in the table; the table value is used. Leakage: Sage 2.3.0 was not fit
+  to host-guest binding data to our knowledge, but CB7 has been used to tune and test
+  methods in SAMPL3/4; good numbers here are weaker evidence than on a less-trodden set.
+  DOIs checked through api.crossref.org on 2026-10-17.
+added_by: Claude (branch-A build), for Attila Beleon
+verified_on: 2026-10-17
+guests:
+  # id: set-local compound ID from the source tables; dG_kcal_mol, sem_kcal_mol; source key
+  cb7_s1_g1:  {set: 1, id: 1,  name: memantine,                          pubchem_cid: 4054,      smiles: "CC12CC3CC(C1)(CC(C3)(C2)N)C",                  dG_kcal_mol: -5.99,  sem_kcal_mol: 0.05, source: liu_2005}
+  cb7_s1_g3:  {set: 1, id: 3,  name: "1,3-bis(trimethylaminio)adamantane", pubchem_cid: 101379195, smiles: "C[N+](C)(C)C12CC3CC(C1)CC(C3)(C2)[N+](C)(C)C", dG_kcal_mol: -6.55,  sem_kcal_mol: 0.05, source: liu_2005}
+  cb7_s1_g5:  {set: 1, id: 5,  name: "N-(1-adamantyl)ethylenediamine",     pubchem_cid: 303798,    smiles: "C1C2CC3CC1CC(C2)(C3)NCCN",                     dG_kcal_mol: -18.22, sem_kcal_mol: 0.09, source: cao_2014}
+  cb7_s1_g17: {set: 1, id: 17, name: "adamantane-1,3-diamine",             pubchem_cid: 213512,    smiles: "C1C2CC3(CC1CC(C2)(C3)N)N",                     dG_kcal_mol: -11.33, sem_kcal_mol: 0.05, source: liu_2005}
+  cb7_s1_g18: {set: 1, id: 18, name: "1-adamantanecarboxylic acid",        pubchem_cid: 13235,     smiles: "C1C2CC3CC1CC(C2)(C3)C(=O)O",                   dG_kcal_mol: -11.59, sem_kcal_mol: 0.06, source: liu_2005}
+  cb7_s1_g22: {set: 1, id: 22, name: 1-adamantyltrimethylaminium,          pubchem_cid: 3010127,   smiles: "C[N+](C)(C)C12CC3CC(C1)CC(C3)C2",              dG_kcal_mol: -16.66, sem_kcal_mol: 0.08, source: liu_2005}
+  cb7_s1_g23: {set: 1, id: 23, name: amantadine,                         pubchem_cid: 2130,      smiles: "C1C2CC3CC1CC(C2)(C3)N",                        dG_kcal_mol: -17.19, sem_kcal_mol: 0.08, source: liu_2005}
+  cb7_s1_g24: {set: 1, id: 24, name: "N-(1-adamantyl)pyridinium",          pubchem_cid: 3848257,   smiles: "C1C2CC3CC1CC(C2)(C3)[N+]4=CC=CC=C4",           dG_kcal_mol: -16.75, sem_kcal_mol: 0.07, source: liu_2005}
+  cb7_s2_g2:  {set: 2, id: 2,  name: dopamine,                           pubchem_cid: 681,       smiles: "c1cc(c(cc1CCN)O)O",                            dG_kcal_mol: -6.31,  sem_kcal_mol: 0.05, source: liu_2005}
+  cb7_s2_g4:  {set: 2, id: 4,  name: o-phenylenediamine,                 pubchem_cid: 7243,      smiles: "c1ccc(c(c1)N)N",                               dG_kcal_mol: -6.68,  sem_kcal_mol: 0.05, source: liu_2005}
+  cb7_s2_g5:  {set: 2, id: 5,  name: m-phenylenediamine,                 pubchem_cid: 7935,      smiles: "c1cc(cc(c1)N)N",                               dG_kcal_mol: -6.69,  sem_kcal_mol: 0.02, source: liu_2005}
+  cb7_s2_g7:  {set: 2, id: 7,  name: 4-(aminomethyl)pyridine,            pubchem_cid: 77317,     smiles: "c1cnccc1CN",                                   dG_kcal_mol: -7.56,  sem_kcal_mol: 0.06, source: liu_2005}
+  cb7_s2_g8:  {set: 2, id: 8,  name: p-phenylenediamine,                 pubchem_cid: 7814,      smiles: "c1cc(ccc1N)N",                                 dG_kcal_mol: -8.60,  sem_kcal_mol: 0.06, source: liu_2005}
+  cb7_s2_g9:  {set: 2, id: 9,  name: p-toluidine,                        pubchem_cid: 7813,      smiles: "Cc1ccc(cc1)N",                                 dG_kcal_mol: -9.43,  sem_kcal_mol: 0.05, source: liu_2005}
+  cb7_s2_g20: {set: 2, id: 20, name: p-xylylenediamine,                  pubchem_cid: 68315,     smiles: "c1cc(ccc1CN)CN",                               dG_kcal_mol: -12.62, sem_kcal_mol: 0.06, source: liu_2005}

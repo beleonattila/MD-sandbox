@@ -1,0 +1,24 @@
+# L3 alchemy environment (branch A ABFE). Pins follow CLAUDE.md; do not upgrade mid-benchmark.
+# OpenFE 1.12 brings openmmtools (alchemical factory, replica exchange) and pymbar.
+# OpenMM and cuda-version are pinned to the same values as mdbench-md, so both environments
+# run the same MD engine on the same driver. Systems are parameterised once in mdbench-md
+# and loaded here as serialised OpenMM XML, so toolkit/AmberTools versions here do not
+# change any force-field parameter.
+name: mdbench-fe
+channels:
+  - conda-forge
+dependencies:
+  - python=3.12
+  - openfe=1.12
+  - openmm=8.4
+  - cuda-version=13.2           # must not exceed the driver's CUDA (nvidia-smi: 13.2)
+  - pymbar=4
+  - numpy
+  - scipy
+  - pandas
+  - pyarrow
+  - pyyaml
+  - matplotlib
+  - pytest
+  - ruff
+  - make

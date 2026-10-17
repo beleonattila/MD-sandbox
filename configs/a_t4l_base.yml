@@ -1,0 +1,22 @@
+# Shared base for every T4 lysozyme L99A branch-A run (extended by a_t4l_*.yml).
+# Prepared inputs come from `python -m mdbench.branch_a.t4l_prep configs/a_t4l_prep.yml`;
+# their checksums and every preparation choice are in systems/t4l/prep.yml.
+branch: a
+system: t4l        # rows override `system` with the ligand id (t4l_<name>)
+
+t4l:
+  ground_truth: data/experimental/t4l_l99a_binding_dG.yml
+  prep_record: systems/t4l/prep.yml
+  prepared_dir: systems/t4l/prepared
+  guests: all                        # or a list of ligand ids
+
+md:
+  platform: CUDA
+  precision: mixed
+  temperature_K: 302.0               # experiment: 302 K (Morton 1995)
+  friction_per_ps: 1.0
+  timestep_fs: 2.0
+  pressure_bar: 1.0
+  barostat_interval: 25
+  minimize: true
+  minimize_tolerance_kj_mol_nm: 10.0

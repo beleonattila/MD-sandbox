@@ -1,0 +1,6 @@
+# L0 null: dG from heavy-atom count alone (leave-one-out linear fit over the 15 guests).
+# Seconds on CPU. The thing every other level must beat on ranking.
+#   RUN make run CONFIG=configs/a_cb7_l0_null.yml
+extends: a_cb7_base.yml
+level: L0
+method: null_heavy_atom_count

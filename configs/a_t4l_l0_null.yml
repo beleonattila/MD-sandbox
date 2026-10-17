@@ -1,0 +1,5 @@
+# L0 null: dG from heavy-atom count alone (leave-one-out linear fit over the 7 ligands).
+#   RUN make run CONFIG=configs/a_t4l_l0_null.yml
+extends: a_t4l_base.yml
+level: L0
+method: null_heavy_atom_count

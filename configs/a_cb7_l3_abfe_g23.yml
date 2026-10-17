@@ -1,0 +1,6 @@
+# L3 pilot: amantadine (CB7 Set 1, ID 23). One guest per config so each run stays well
+# under the 6 h ask-first limit and resumes independently.
+#   RUN ~/.local/bin/micromamba run -r ~/micromamba -n mdbench-fe make run CONFIG=configs/a_cb7_l3_abfe_g23.yml
+extends: a_cb7_l3_abfe.yml
+cb7:
+  guests: [cb7_s1_g23]

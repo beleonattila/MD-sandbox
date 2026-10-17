@@ -68,5 +68,7 @@ upgrade mid-benchmark — a version change invalidates comparisons. Record `code
 
 OpenMM is 8.4, not 8.5.x, because openmm-plumed 2.1 (newest) is only built for OpenMM 8.4 /
 PLUMED 2.9. `cuda-version` must not exceed the driver's CUDA (`nvidia-smi`, currently 13.2):
-a newer NVRTC fails with `CUDA_ERROR_UNSUPPORTED_PTX_VERSION`. The `mdbench-fe` and
-`mdbench-ml` pins are not yet solved. Exact builds are in `env/mdbench-md.lock.txt`.
+a newer NVRTC fails with `CUDA_ERROR_UNSUPPORTED_PTX_VERSION`. `mdbench-fe` was solved
+2026-10-17 (OpenFE 1.12.0, openmmtools 0.26.0, same OpenMM 8.4 and cuda-version 13.2);
+`mdbench-md` gained one leaf package that day (vina 1.2.7, branch A docking). The
+`mdbench-ml` pins are not yet solved. Exact builds are in `env/*.lock.txt`.

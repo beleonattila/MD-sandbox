@@ -1,0 +1,26 @@
+# CB7 host-guest preparation, branch A.
+#   RUN python -m mdbench.branch_a.cb7_prep configs/a_cb7_prep.yml
+# Inputs only. Writes systems/cb7/poses/*.sdf (bound poses, identity-checked),
+# systems/cb7/prepared/<guest>/* (parameterised, solvated systems) and the full preparation
+# record systems/cb7/prep.yml. Not a `mdbench run` config: preparation emits no rows.
+prep:
+  ground_truth: data/experimental/cb7_binding_dG.yml   # guest list, SMILES for identity checks
+  source:
+    repo: https://github.com/MobleyLab/benchmarksets
+    commit: 5233e0a1529b3c3ba9adf8c245de2b658e5fbf40
+    url: https://raw.githubusercontent.com/MobleyLab/benchmarksets/{commit}/input_files/cb7-set{set}/prmtop-rst7/cb7-{id}.{ext}
+    # Bound poses: the benchmark authors docked each guest with MOE, ran 2 ns NVT with
+    # GAFF/RESP and took the most populated cluster. Only host and guest coordinates and
+    # connectivity are used from these files; every parameter here is re-derived.
+  fetch_dir: runs/a/cb7_fetch        # downloads are disposable; checksums go in the record
+  poses_dir: systems/cb7/poses
+  out_dir: systems/cb7/prepared
+  record: systems/cb7/prep.yml
+  host_resname: CB7
+  guest_resname: MOL
+  forcefield: openff-2.3.0.offxml    # Sage 2.3.0: NAGL (openff-gnn-am1bcc-1.0.0) charges, TIP3P water, JC ions
+  box_shape: rhombic_dodecahedron
+  padding_nm: 1.2                    # solute to box edge
+  nacl_molar: 0.05                   # stands in for the 50 mM sodium acetate buffer (acetate not modelled)
+  packmol_tolerance_nm: 0.2
+  target_density_g_ml: 0.9           # packmol's packing density; NPT equilibration fixes it

@@ -82,4 +82,7 @@ Experimental references are not yet attached, so nothing is scored against exper
 Branch B is in progress: adenylate kinase has run through L0–L2 (ANM, all-atom normal
 modes, 3 × 10 ns MD) and is scored against the crystal open→closed displacement; the
 ten softest ANM modes already capture 97 % of it, and none of the three MD replicates
-closed. Branches A and D are at the planning stage.
+closed. Branch A is in progress: CB7 host–guest (15 guests) and T4 lysozyme L99A (7
+ligands) have run through L0–L2 (heavy-atom null, Vina, MM/GBSA) and are scored
+against experiment; no level yet beats the null outside its 95 % CI, and one CB7 ABFE
+pilot (L3) ran but did not converge. Branch D is at the planning stage.
