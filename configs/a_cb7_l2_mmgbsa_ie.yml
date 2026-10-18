@@ -1,0 +1,9 @@
+# L2 variant: MM/GBSA plus an interaction-entropy term (-T dS from the fluctuation of the
+# gas-phase host-guest interaction energy; engines/mmgbsa.py interaction_entropy). Re-uses
+# the frames of the MM/GBSA run below, so it adds minutes of CPU, no MD. Run that first.
+#   RUN make run CONFIG=configs/a_cb7_l2_mmgbsa_ie.yml
+extends: a_cb7_l2_mmgbsa.yml
+method: mmgbsa_obc2_ie
+ie:
+  source_config: configs/a_cb7_l2_mmgbsa.yml
+  estimator: c2                      # second-order cumulant; the exponential average 'ie' is recorded too

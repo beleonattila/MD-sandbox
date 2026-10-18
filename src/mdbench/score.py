@@ -5,12 +5,17 @@ non-null ``reference`` are scored. Metrics (``docs/GROUND_TRUTH.md``): Spearman 
 pairwise ranking accuracy, RMSE and MUE, each with a percentile bootstrap CI. Spearman
 and pairwise accuracy need at least two reference points with distinct values.
 
+Each group's bootstrap is seeded from ``seed`` and the systems it covers, so a group's CI
+does not move when unrelated rows are added, and methods scored on the same systems are
+resampled identically (a paired bootstrap, so their CIs are directly comparable).
+
 A branch can override this by registering a scorer with
 :func:`mdbench.registry.register_scorer`.
 """
 
 from __future__ import annotations
 
+import zlib
 from itertools import combinations
 from pathlib import Path
 
@@ -51,7 +56,6 @@ def _metrics(pred: np.ndarray, ref: np.ndarray) -> dict[str, float]:
 
 def score_frame(df: pd.DataFrame, n_boot: int = 1000, seed: int = 0) -> pd.DataFrame:
     """Score a results DataFrame; one output row per group with point values and 95% CIs."""
-    rng = np.random.default_rng(seed)
     df = df[df["reference"].notna()]
     records = []
     groupings = {
@@ -69,6 +73,9 @@ def score_frame(df: pd.DataFrame, n_boot: int = 1000, seed: int = 0) -> pd.DataF
                 )
                 pred, ref = agg["prediction"].to_numpy(float), agg["reference"].to_numpy(float)
             point = _metrics(pred, ref)
+            systems = "|".join(sorted(map(str, g["system"].unique())))
+            key = zlib.crc32(f"{scope}|{systems}".encode())
+            rng = np.random.default_rng([seed, key])
             boots: dict[str, list[float]] = {k: [] for k in point}
             n = len(pred)
             for _ in range(n_boot if n >= 2 else 0):

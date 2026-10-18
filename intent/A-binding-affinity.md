@@ -50,10 +50,10 @@ Spearman rho with bootstrap 95 % CI; RMSE in kcal/mol; cost is median wall clock
 
 | Series | L0 null (heavy atoms) | L1 Vina | L2 MM/GBSA, 3 × 2 ns (T4L 3 × 1 ns) |
 |---|---|---|---|
-| CB7, n = 15 | 0.08 [−0.49, 0.65], RMSE 5.0 | 0.53 [−0.06, 0.92], RMSE 7.3 | 0.28 [−0.37, 0.71], RMSE 35.7 |
+| CB7, n = 15 | 0.08 [−0.44, 0.64], RMSE 5.0 | 0.53 [−0.04, 0.90], RMSE 7.3 | 0.28 [−0.36, 0.70], RMSE 35.7 |
 | CB7 Set 1, n = 8 | −0.50 | 0.71 | 0.21 |
 | CB7 Set 2, n = 7 | −0.46 | −0.14 | 0.14 |
-| T4L L99A, n = 7 | 0.36 [−0.56, 1.0], RMSE 0.67 | 0.50 [−0.59, 1.0], RMSE 0.68 | 0.75 [−0.18, 1.0], RMSE 17.9 |
+| T4L L99A, n = 7 | 0.36 [−0.65, 1.0], RMSE 0.67 | 0.50 [−0.59, 1.0], RMSE 0.68 | 0.75 [−0.18, 1.0], RMSE 17.9 |
 | cost per ligand | ~0 s | 13–19 s | 23–25 min |
 
 - **Flattening point (provisional, L0–L2 only):** on CB7, ranking rises from L0 to L1 and
@@ -64,6 +64,15 @@ Spearman rho with bootstrap 95 % CI; RMSE in kcal/mol; cost is median wall clock
 - **MM/GBSA absolute values are meaningless here** (no entropy term): CB7 overbinds by
   ~30 kcal/mol, T4L by ~18. Only its ranking is compared. Worst CB7 case: g17
   (adamantane-1,3-diamine), −82.6 vs −11.3.
+- **Adding an entropy term (`mmgbsa_obc2_ie`, 2026-10-18)** — interaction entropy from the
+  same frames (second-order cumulant, chosen before scoring; `configs/a_*_l2_mmgbsa_ie.yml`),
+  minutes of CPU. CB7: ρ 0.28 → 0.50 [−0.02, 0.82], RMSE 35.7 → 22.5, but within each set
+  ranking falls (Set 1 0.21 → 0.12, Set 2 0.14 → 0.11): the gain is the offset between
+  sets, not ranking inside one. The interaction-energy sd is 3–14 kcal/mol, above the
+  ~3.6 kcal/mol beyond which the estimator is known to be unreliable (g3: −TΔS up to
+  169 kcal/mol). T4L: sd 1.3–1.9 kcal/mol, −TΔS 1.5–3 kcal/mol, ρ unchanged at 0.75.
+  This answers the first open question a little further: entropy does not rescue
+  MM/GBSA ranking on CB7.
 - **The T4L null is hard to beat on RMSE.** The measured range is 2 kcal/mol; heavy-atom
   count and Vina both sit at ~0.7 kcal/mol RMSE, near the noise floor.
 - **L3 pilot, CB7 amantadine (g23):** −21.9 ± 0.9 vs −17.19 (4.6 h). **Not converged**:
@@ -90,7 +99,20 @@ Spearman rho with bootstrap 95 % CI; RMSE in kcal/mol; cost is median wall clock
 - **Storage:** `runs/a` 211 MB (HREX `.nc` deleted after `u_kln.npz` extraction);
   prepared systems 19 MB.
 - **Not done:** CB7 L3 for the other 14 guests (~2.7 h each with the denser schedule, ~38 h) and T4L L3
-  (~10–20 h per ligand, `configs/a_t4l_l3_abfe.yml`) — both need approval; L4.
+  (~15 h per ligand, `configs/a_t4l_l3_abfe_<ligand>.yml`) — both need approval; L4.
+- **Campaign readiness (2026-10-18).** Per-guest L3 configs exist for all 14 remaining CB7
+  guests and all 7 T4L ligands, with the dense schedule in the base configs (the first
+  pilot pins its old schedule, so its row stays reproducible). A 30-iteration T4L benzene
+  smoke test ran both legs, the pocket C-alpha restraint and MBAR end to end, and found one
+  more GPU-memory problem: pymbar's JAX backend preallocated 75 % of the card at the first
+  leg's analysis and held it (4.7 GB), leaving too little for the 35k-atom complex. MBAR
+  now runs on the CPU (`engines/abfe.py`). Scorer bootstraps are seeded per set of
+  systems, so a CI no longer moves when unrelated rows are added, and methods on the same
+  ligands are resampled identically; the CB7 and T4L CIs above are from that scorer.
+- **Open before the L3 campaign is scored:** `cb7_s1_g23` has two L3 rows (the 24-state
+  pilot and the converged 30-state run) with the same level and method, and the scorer
+  averages rows per system. Whether to exclude the pilot by config hash, give it its own
+  method name, or keep the average is a decision about superseded rows, so it is left open.
 
 ## Open questions
 

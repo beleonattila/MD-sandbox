@@ -1,8 +1,12 @@
 # L3: absolute binding free energy, alchemical decoupling with Hamiltonian replica exchange
 # and MBAR (src/mdbench/engines/abfe.py). Runs in mdbench-fe:
 #   RUN ~/.local/bin/micromamba run -r ~/micromamba -n mdbench-fe make run CONFIG=configs/a_cb7_l3_abfe_<guest>.yml
-# One config per guest (a_cb7_l3_abfe_<guest>.yml extends this and sets cb7.guests).
-# VRAM: one ~3.5k-atom context per state cache, well under 1 GB.
+# One config per guest (a_cb7_l3_abfe_<set>_<guest>.yml extends this and sets cb7.guests).
+# Campaign, ~2.7 h per guest, ~38 h for the 14 not yet run (ask first):
+#   for c in configs/a_cb7_l3_abfe_s*.yml; do
+#     ~/.local/bin/micromamba run -r ~/micromamba -n mdbench-fe make run CONFIG=$c; done
+# Amantadine with this schedule is a_cb7_l3_abfe_g23_dense.yml (already run).
+# VRAM: ~0.5 GB (energy context cache capped at one context, engines/abfe.py).
 extends: a_cb7_base.yml
 level: L3
 method: abfe_hrex_mbar
@@ -22,11 +26,14 @@ abfe:
   n_iterations:                      # pilot-sized; the forward-convergence diagnostic says whether it is enough
     complex: 2000                    # 2 ns per state
     solvent: 1000                    # 1 ns per state
+  # Electrostatics at 0.1 steps plus 0.95 at the restraint boundary: the 0.2-step schedule of
+  # the first CB7 pilot gave neighbour overlap 0.014-0.04 and no round trips; this one gave
+  # >= 0.14 and 5/3 round trips (intent/A-binding-affinity.md, 2026-10-18).
   schedule:
     complex:
-      lambda_restraints:     [0.0, 0.25, 0.5, 1.0,  1.0, 1.0, 1.0, 1.0, 1.0, 1.0,  1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0]
-      lambda_electrostatics: [1.0, 1.0,  1.0, 1.0,  0.8, 0.6, 0.4, 0.2, 0.0, 0.0,  0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0]
-      lambda_sterics:        [1.0, 1.0,  1.0, 1.0,  1.0, 1.0, 1.0, 1.0, 1.0, 0.9,  0.8, 0.7, 0.6, 0.5, 0.45, 0.4, 0.35, 0.3, 0.25, 0.2, 0.15, 0.1, 0.05, 0.0]
+      lambda_restraints:     [0.0, 0.25, 0.5, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0]
+      lambda_electrostatics: [1.0, 1.0, 1.0, 1.0, 0.95, 0.9, 0.8, 0.7, 0.6, 0.5, 0.4, 0.3, 0.2, 0.1, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0]
+      lambda_sterics:        [1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 0.9, 0.8, 0.7, 0.6, 0.5, 0.45, 0.4, 0.35, 0.3, 0.25, 0.2, 0.15, 0.1, 0.05, 0.0]
     solvent:
-      lambda_electrostatics: [1.0, 0.8, 0.6, 0.4, 0.2, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0]
-      lambda_sterics:        [1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 0.9, 0.8, 0.7, 0.6, 0.5, 0.45, 0.4, 0.35, 0.3, 0.25, 0.2, 0.15, 0.1, 0.05, 0.0]
+      lambda_electrostatics: [1.0, 0.95, 0.9, 0.8, 0.7, 0.6, 0.5, 0.4, 0.3, 0.2, 0.1, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0]
+      lambda_sterics:        [1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 0.9, 0.8, 0.7, 0.6, 0.5, 0.45, 0.4, 0.35, 0.3, 0.25, 0.2, 0.15, 0.1, 0.05, 0.0]

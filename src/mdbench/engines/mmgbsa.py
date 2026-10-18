@@ -5,7 +5,8 @@ and each frame is scored as ``E(complex) - E(host) - E(guest)`` with the molecul
 mechanics energy plus a generalized-Born solvation term (OBC2, Onufriev-Bashford-Case
 2004) and OpenMM's ACE non-polar surface term. No conformational entropy term. The
 receptor and ligand coordinates come from the same frame, so their internal energies
-cancel exactly and the score is the GB-screened interaction plus desolvation.
+cancel exactly and the score is the GB-screened interaction plus desolvation. An optional
+entropy term (:func:`interaction_entropy`) is estimated from the same frames.
 
 Radii: Amber ``mbondi2`` (H 1.2 A, H on N 1.3 A, C 1.7, N 1.55, O 1.5, S 1.8, P 1.85,
 F 1.5, Cl 1.7, Br 1.85, I 1.98) with the OBC2 screening factors used by Amber's
@@ -106,7 +107,11 @@ def add_gb(system: Any, elements: Sequence[str], bonded_to: Sequence[str | None]
 
 
 class GBScorer:
-    """E(complex) - E(host) - E(guest) in kJ/mol for host + guest coordinate frames."""
+    """E(complex) - E(host) - E(guest) in kJ/mol for host + guest coordinate frames.
+
+    With ``solvation=False`` the GB/SA force is left out, which gives the gas-phase MM
+    interaction energy that the interaction-entropy estimate is built from.
+    """
 
     def __init__(
         self,
@@ -116,6 +121,7 @@ class GBScorer:
         host: Sequence[int],
         guest: Sequence[int],
         platform: str = "CPU",
+        solvation: bool = True,
     ) -> None:
         import openmm
 
@@ -126,7 +132,7 @@ class GBScorer:
             sub = subset_system(vacuum_system, atoms)
             el = [elements[a] for a in atoms]
             bt = [bonded_to[a] for a in atoms]
-            sysgb = add_gb(sub, el, bt)
+            sysgb = add_gb(sub, el, bt) if solvation else _no_cutoff(sub)
             plat = openmm.Platform.getPlatformByName(platform)
             self.contexts[name] = (
                 openmm.Context(sysgb, openmm.VerletIntegrator(0.001), plat),
@@ -150,4 +156,30 @@ class GBScorer:
         return out
 
 
-__all__ = ["GBScorer", "add_gb", "gb_radii", "subset_system"]
+def _no_cutoff(system: Any) -> Any:
+    import openmm
+
+    out = copy.deepcopy(system)
+    for f in out.getForces():
+        if isinstance(f, openmm.NonbondedForce):
+            f.setNonbondedMethod(openmm.NonbondedForce.NoCutoff)
+    return out
+
+
+def interaction_entropy(e_int_kcal: np.ndarray, kt_kcal: float) -> dict[str, float]:
+    """-T dS of binding from the fluctuation of the gas-phase interaction energy.
+
+    ``ie`` is the interaction-entropy estimate of Duan, He & Zhang (J. Am. Chem. Soc. 2016,
+    doi:10.1021/jacs.6b02682), ``kT ln < exp(dE / kT) >`` with ``dE = E_int - <E_int>``;
+    ``c2`` is its second-order cumulant, ``var(E_int) / 2kT`` (Sun et al. 2018), which is
+    less dominated by single frames. Both are >= 0 (an entropic penalty), in kcal/mol.
+    """
+    e = np.asarray(e_int_kcal, float)
+    de = (e - e.mean()) / kt_kcal
+    m = de.max()
+    ie = kt_kcal * (m + np.log(np.mean(np.exp(de - m))))
+    c2 = e.var(ddof=1) / (2 * kt_kcal)
+    return {"ie": float(ie), "c2": float(c2), "sd_kcal": float(e.std(ddof=1))}
+
+
+__all__ = ["GBScorer", "add_gb", "gb_radii", "interaction_entropy", "subset_system"]

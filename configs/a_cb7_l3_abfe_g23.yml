@@ -1,6 +1,17 @@
-# L3 pilot: amantadine (CB7 Set 1, ID 23). One guest per config so each run stays well
-# under the 6 h ask-first limit and resumes independently.
+# L3 pilot: amantadine (CB7 Set 1, ID 23), first schedule (electrostatics in 0.2 steps).
+# Kept as run: neighbour overlap fell to 0.014 and no replica made a round trip, so the base
+# config now uses the denser schedule (a_cb7_l3_abfe_g23_dense.yml was its check). The
+# override below reproduces the pilot exactly; its row in results/a.parquet is the record.
 #   RUN ~/.local/bin/micromamba run -r ~/micromamba -n mdbench-fe make run CONFIG=configs/a_cb7_l3_abfe_g23.yml
 extends: a_cb7_l3_abfe.yml
 cb7:
   guests: [cb7_s1_g23]
+abfe:
+  schedule:
+    complex:
+      lambda_restraints:     [0.0, 0.25, 0.5, 1.0,  1.0, 1.0, 1.0, 1.0, 1.0, 1.0,  1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0]
+      lambda_electrostatics: [1.0, 1.0,  1.0, 1.0,  0.8, 0.6, 0.4, 0.2, 0.0, 0.0,  0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0]
+      lambda_sterics:        [1.0, 1.0,  1.0, 1.0,  1.0, 1.0, 1.0, 1.0, 1.0, 0.9,  0.8, 0.7, 0.6, 0.5, 0.45, 0.4, 0.35, 0.3, 0.25, 0.2, 0.15, 0.1, 0.05, 0.0]
+    solvent:
+      lambda_electrostatics: [1.0, 0.8, 0.6, 0.4, 0.2, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0]
+      lambda_sterics:        [1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 0.9, 0.8, 0.7, 0.6, 0.5, 0.45, 0.4, 0.35, 0.3, 0.25, 0.2, 0.15, 0.1, 0.05, 0.0]

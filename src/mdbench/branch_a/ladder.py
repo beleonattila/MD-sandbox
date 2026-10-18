@@ -33,6 +33,7 @@ import numpy as np
 import yaml
 
 from mdbench.branch_a.common import (
+    KB_KCAL_MOL_K,
     KCAL_PER_KJ,
     entries,
     heavy_atom_count,
@@ -337,6 +338,72 @@ def l2_mmgbsa(cfg: dict[str, Any], run_dir: Path) -> list[dict[str, Any]]:
         rows.append(_row(gt, gid, means.mean(), max(spread, within), wall, reps[0]["gpu"]))
         log.info("%s: %.2f +- %.2f kcal/mol", gid, means.mean(), max(spread, within))
     _json(detail, run_dir / "l2_mmgbsa.json")
+    return rows
+
+
+@register(branch="a", system="cb7", level="L2", method="mmgbsa_obc2_ie")
+@register(branch="a", system="t4l", level="L2", method="mmgbsa_obc2_ie")
+def l2_mmgbsa_ie(cfg: dict[str, Any], run_dir: Path) -> list[dict[str, Any]]:
+    """MM/GBSA plus an interaction-entropy term, re-using the MM/GBSA run's frames (no new MD).
+
+    ``ie.source_config`` names the MM/GBSA config whose run directory holds the replicates.
+    Per replicate: ``<dE_GB> - T dS``, with -T dS from the gas-phase host-guest interaction
+    energy of the same frames (``ie.estimator``: ``c2`` or ``ie``). Uncertainty as at L2.
+    The wall clock adds the MM/GBSA replicate's cost, since this level cannot run without it.
+    """
+    from mdbench.branch_a.cb7_prep import read_system
+    from mdbench.config import load_config
+    from mdbench.config import run_dir as config_run_dir
+    from mdbench.engines.mmgbsa import GBScorer, interaction_entropy
+
+    src_cfg = load_config(repo_path(cfg["ie"]["source_config"]))
+    src = config_run_dir(src_cfg)
+    est = str(cfg["ie"]["estimator"])
+    kt = KB_KCAL_MOL_K * float(src_cfg["md"]["temperature_K"])
+    gt = ground_truth(cfg)
+    rows, detail = [], {}
+    for gid in guest_ids(cfg):
+        idx = json.loads(prepared(cfg, gid, "indices").read_text())
+        nh, ng = len(idx["host"]), len(idx["guest"])
+        el, nb = ((idx["elements"], idx["h_neighbour"]) if "elements" in idx
+                  else _elements_and_neighbours(*pose_rdkit(cfg, gid)))  # fmt: skip
+        scorer = GBScorer(read_system(prepared(cfg, gid, "vacuum_system")), el, nb,
+                          idx["host"], idx["guest"], solvation=False)  # fmt: skip
+        reps = []
+        for k in range(len(src_cfg["mmgbsa"]["seeds"])):
+            rd = src / gid / f"rep_{k}"
+            if not (rd / "replicate.json").exists():
+                raise FileNotFoundError(f"{rd}: run {cfg['ie']['source_config']} first")
+            t0 = time.perf_counter()
+            l2 = json.loads((rd / "replicate.json").read_text())
+            gb = np.load(rd / "mmgbsa.npz")
+            t, frames = read_solute_frames(rd, nh, ng)
+            keep = t >= float(src_cfg["mmgbsa"]["discard_ps"])
+            if keep.sum() != len(gb["dE_kcal"]):
+                raise ValueError(f"{rd}: {keep.sum()} frames vs {len(gb['dE_kcal'])} in mmgbsa.npz")
+            e_int = scorer.score(frames[keep]) * KCAL_PER_KJ
+            ent = interaction_entropy(e_int, kt)
+            out = run_dir / gid / f"rep_{k}"
+            out.mkdir(parents=True, exist_ok=True)
+            np.savez_compressed(out / "e_int.npz", time_ps=t[keep], e_int_kcal=e_int)
+            reps.append({
+                "mmgbsa_kcal": l2["mean_kcal"], "mmgbsa_sem_kcal": l2["sem_kcal"],
+                "e_int_mean_kcal": float(e_int.mean()), "minus_tds": ent,
+                "dG_kcal": l2["mean_kcal"] + ent[est], "gpu": l2["gpu"],
+                "wall_clock_s": l2["md_wall_clock_s"] + l2["analysis_wall_clock_s"]
+                + time.perf_counter() - t0,
+            })  # fmt: skip
+        dg = np.array([r["dG_kcal"] for r in reps])
+        sems = np.array([r["mmgbsa_sem_kcal"] for r in reps])
+        spread = float(dg.std(ddof=1) / math.sqrt(len(dg))) if len(dg) > 1 else 0.0
+        within = float(math.sqrt(np.nanmean(sems**2) / len(sems)))
+        detail[gid] = {"estimator": est, "replicates": reps, "spread_sem": spread}
+        wall = sum(r["wall_clock_s"] for r in reps)
+        rows.append(_row(gt, gid, dg.mean(), max(spread, within), wall, reps[0]["gpu"]))
+        tds = float(np.mean([r["minus_tds"][est] for r in reps]))
+        log.info("%s: %.2f +- %.2f kcal/mol (-TdS %s %.2f)", gid, dg.mean(), max(spread, within),
+                 est, tds)  # fmt: skip
+    _json(detail, run_dir / "l2_mmgbsa_ie.json")
     return rows
 
 

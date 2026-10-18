@@ -38,12 +38,19 @@ import gzip
 import json
 import logging
 import math
+import os
 import time
 from collections.abc import Mapping, Sequence
 from pathlib import Path
 from typing import Any
 
 import numpy as np
+
+# pymbar's JAX backend has CUDA in mdbench-fe and preallocates 75% of the card the first
+# time MBAR runs, then holds it: after one leg's analysis only ~1.4 GB of the 6 GB is left
+# for the next leg's contexts, which a 35k-atom T4L complex overruns. MBAR on these
+# u_kln sizes takes seconds on the CPU. Must be set before openmmtools imports pymbar.
+os.environ.setdefault("JAX_PLATFORMS", "cpu")
 
 log = logging.getLogger(__name__)
 

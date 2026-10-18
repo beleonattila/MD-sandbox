@@ -1,0 +1,5 @@
+# L3 ABFE, T4L L99A + p-xylene. NOT RUN: ~15 h per ligand (measured, 2026-10-18 smoke test), above the 6 h limit.
+#   RUN ~/.local/bin/micromamba run -r ~/micromamba -n mdbench-fe make run CONFIG=configs/a_t4l_l3_abfe_p_xylene.yml
+extends: a_t4l_l3_abfe.yml
+t4l:
+  guests: [t4l_p_xylene]

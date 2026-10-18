@@ -1,0 +1,6 @@
+# L3 ABFE, CB7 p-toluidine (Set 2, ID 9). One guest per config: ~2.7 h each on the
+# 4050, so each run is under the 6 h limit, but the 14-guest campaign (~38 h) needs approval.
+#   RUN ~/.local/bin/micromamba run -r ~/micromamba -n mdbench-fe make run CONFIG=configs/a_cb7_l3_abfe_s2_g9.yml
+extends: a_cb7_l3_abfe.yml
+cb7:
+  guests: [cb7_s2_g9]

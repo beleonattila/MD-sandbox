@@ -187,6 +187,62 @@ def test_schedule_validation():
         abfe.schedule(bad, "solvent")
 
 
+def test_l3_campaign_configs_cover_every_guest_once_with_the_dense_schedule():
+    base = load_config(CONFIGS / "a_cb7_l3_abfe.yml")["abfe"]["schedule"]
+    dense = load_config(CONFIGS / "a_cb7_l3_abfe_g23_dense.yml")
+    assert dense["abfe"]["schedule"] == base  # the checked schedule is the campaign's
+    assert len(base["complex"]["lambda_sterics"]) == 30
+    assert len(base["solvent"]["lambda_sterics"]) == 27
+    pilot = load_config(CONFIGS / "a_cb7_l3_abfe_g23.yml")["abfe"]["schedule"]
+    assert len(pilot["complex"]["lambda_sterics"]) == 24  # the first pilot stays reproducible
+    seen = [g for p in CONFIGS.glob("a_cb7_l3_abfe_s*.yml") for g in cb7.guest_ids(load_config(p))]
+    assert sorted([*seen, "cb7_s1_g23"]) == sorted(GT["guests"])
+    t4l = [g for p in CONFIGS.glob("a_t4l_l3_abfe_*.yml") for g in cb7.guest_ids(load_config(p))]
+    assert sorted(t4l) == sorted(
+        yaml.safe_load((REPO_ROOT / "data/experimental/t4l_l99a_binding_dG.yml").read_text())[
+            "ligands"
+        ]
+    )
+
+
+def test_energy_context_cache_holds_one_context(tmp_path):
+    """Under NPT, ``sampler.minimize`` builds a barostat-free copy of the system per state, so
+    an unbounded energy cache keeps one context per state (~2.5 GB of GPU memory for 24 CB7
+    states, which exhausted the 6 GB card in the first L3 pilot). The cap keeps one."""
+    pytest.importorskip("openmmtools")
+    import openmm
+    from openmm import unit
+    from openmmtools import alchemy, mcmc, multistate, states, testsystems
+
+    ts = testsystems.WaterBox(box_edge=2.2 * unit.nanometer, cutoff=0.9 * unit.nanometer)
+    ts.system.addForce(openmm.MonteCarloBarostat(1 * unit.bar, 300 * unit.kelvin))
+    region = alchemy.AlchemicalRegion(alchemical_atoms=[0, 1, 2])
+    alch = alchemy.AbsoluteAlchemicalFactory().create_alchemical_system(ts.system, region)
+    thermo = states.ThermodynamicState(alch, 300 * unit.kelvin, 1 * unit.bar)
+    therm_states = []
+    for lam in (1.0, 0.5, 0.0):
+        cs = states.CompoundThermodynamicState(thermo, [alchemy.AlchemicalState.from_system(alch)])
+        cs.lambda_sterics = cs.lambda_electrostatics = lam
+        therm_states.append(cs)
+
+    def n_contexts(capacity):
+        sampler = multistate.ReplicaExchangeSampler(
+            mcmc_moves=mcmc.LangevinDynamicsMove(n_steps=1), number_of_iterations=1
+        )
+        sampler.energy_context_cache = abfe._context_cache({"platform": "CPU"}, capacity=capacity)
+        sampler.sampler_context_cache = abfe._context_cache({"platform": "CPU"})
+        rep = multistate.MultiStateReporter(str(tmp_path / f"c{capacity}.nc"))
+        sampler.create(therm_states, states.SamplerState(ts.positions, box_vectors=
+                       ts.system.getDefaultPeriodicBoxVectors()), rep)  # fmt: skip
+        sampler.minimize(max_iterations=2)
+        n = len(sampler.energy_context_cache)
+        rep.close()
+        return n
+
+    assert n_contexts(None) == 3  # the openmmtools behaviour that made the cap necessary
+    assert n_contexts(1) == 1
+
+
 def test_per_state_samples_and_mbar_on_harmonic_oscillators():
     """MBAR on exact samples of 1D harmonic oscillators recovers the analytic dF."""
     rng = np.random.default_rng(1)
@@ -296,3 +352,23 @@ def test_protein_ad4_types():
     assert protein_ad4_type("ALA", "N", "N", 1, "") == "N"
     assert protein_ad4_type("SER", "HG", "H", 0, "O") == "HD"
     assert protein_ad4_type("ALA", "HB1", "H", 0, "C") == "H"
+
+
+def test_interaction_entropy_matches_gaussian_limit():
+    from mdbench.engines.mmgbsa import interaction_entropy
+
+    kt = common.KB_KCAL_MOL_K * 298.15
+    e = np.random.default_rng(0).normal(-30.0, 1.5, 200_000)
+    r = interaction_entropy(e, kt)
+    assert r["c2"] == pytest.approx(1.5**2 / (2 * kt), rel=0.02)
+    assert r["ie"] == pytest.approx(r["c2"], rel=0.05)  # cumulants above 2 vanish for a Gaussian
+    assert interaction_entropy(np.full(10, -5.0), kt)["ie"] == pytest.approx(0.0)
+
+
+def test_mbar_backend_stays_off_the_gpu():
+    """pymbar's JAX would otherwise preallocate 75% of the 6 GB card during the first leg's
+    analysis and starve the second leg (seen on the T4L complex)."""
+    jax = pytest.importorskip("jax")
+    import mdbench.engines.abfe  # noqa: F401  (sets JAX_PLATFORMS before any backend use)
+
+    assert {d.platform for d in jax.devices()} == {"cpu"}
