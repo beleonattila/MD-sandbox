@@ -50,7 +50,7 @@ Spearman rho with bootstrap 95 % CI; RMSE in kcal/mol; cost is median wall clock
 
 | Series | L0 null (heavy atoms) | L1 Vina | L2 MM/GBSA, 3 × 2 ns (T4L 3 × 1 ns) |
 |---|---|---|---|
-| CB7, n = 15 | 0.08 [−0.45, 0.62], RMSE 5.0 | 0.52 [−0.08, 0.92], RMSE 7.3 | 0.28 [−0.35, 0.71], RMSE 35.7 |
+| CB7, n = 15 | 0.08 [−0.49, 0.65], RMSE 5.0 | 0.53 [−0.06, 0.92], RMSE 7.3 | 0.28 [−0.37, 0.71], RMSE 35.7 |
 | CB7 Set 1, n = 8 | −0.50 | 0.71 | 0.21 |
 | CB7 Set 2, n = 7 | −0.46 | −0.14 | 0.14 |
 | T4L L99A, n = 7 | 0.36 [−0.56, 1.0], RMSE 0.67 | 0.50 [−0.59, 1.0], RMSE 0.68 | 0.75 [−0.18, 1.0], RMSE 17.9 |

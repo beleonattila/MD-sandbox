@@ -64,7 +64,6 @@ tr.A .tag{background:var(--A)} tr.A td{border-top:3px solid var(--A)} tr.A .firs
 tr.B .tag{background:var(--B)} tr.B td{border-top:3px solid var(--B)}
 tr.C .tag{background:var(--C)} tr.C td{border-top:3px solid var(--C)} tr.C .first{color:var(--C)}
 tr.D .tag{background:var(--D)} tr.D td{border-top:3px solid var(--D)}
-tr.C td{background:var(--Ctint)}
 .legend{display:flex;flex-wrap:wrap;gap:8px 22px;font-family:var(--sans);font-size:.82rem;color:var(--ink2)}
 .legend span{display:inline-flex;align-items:center;gap:8px}
 .sw{display:inline-block;width:22px;height:14px;border-radius:3px;border:1px solid var(--rule2);background:var(--panel)}
@@ -136,12 +135,48 @@ footer a:hover,footer a:focus-visible,.note a:hover,.note a:focus-visible{color:
 .findings li{border-top:1px solid var(--rule);padding-top:10px}
 .findings b{font-family:var(--sans);font-weight:600}
 .findings li.flag b{color:var(--D)}
+
+/* ladder status, per-branch progress sections, verdicts */
+.ladder td .s{display:block;margin-top:8px;font-size:.7rem;letter-spacing:.06em;text-transform:uppercase;font-weight:700;color:var(--ink3)}
+tr.A td.ran{background:var(--Atint)} tr.B td.ran{background:var(--Btint)} tr.C td.ran{background:var(--Ctint)} tr.D td.ran{background:var(--Dtint)}
+tr.A td.ran .s{color:var(--A)} tr.B td.ran .s{color:var(--B)} tr.C td.ran .s{color:var(--C)}
+.ladder td.part{background:repeating-linear-gradient(135deg,var(--panel) 0 7px,var(--Atint) 7px 14px)}
+tr.A td.part .s{color:var(--A)}
+.sw.ranA{background:var(--Atint);border-color:var(--A)} .sw.part{background:repeating-linear-gradient(135deg,var(--panel) 0 4px,var(--Atint) 4px 8px);border-color:var(--A)}
+.prog.A{border-top-color:var(--A)} .prog.B{border-top-color:var(--B)}
+.prog.A .st.ran{background:var(--Atint);border-color:var(--A)} .prog.B .st.ran{background:var(--Btint);border-color:var(--B)}
+.st.part{background:repeating-linear-gradient(135deg,var(--panel) 0 7px,var(--Atint) 7px 14px);border-color:var(--A)}
+.prog .chart svg{min-width:720px}
+.prog figure.chart{margin:0;display:flex;flex-direction:column;gap:8px}
+.prog figure.chart figcaption{font-family:var(--sans);font-size:.9rem;font-weight:600;padding:0 4px}
+.prog figure.chart figcaption span{font-weight:400;color:var(--ink3)}
+.pair{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,460px),1fr));gap:16px}
+.pair .chart svg{min-width:0}
+table.num{border-collapse:collapse;width:100%;min-width:640px;font-family:var(--sans);font-size:.88rem}
+.num th,.num td{padding:8px 10px;border-bottom:1px solid var(--rule);text-align:left}
+.num thead th{color:var(--ink3);font-size:.72rem;letter-spacing:.1em;text-transform:uppercase;font-weight:600;border-bottom:1.5px solid var(--rule2)}
+.num td.v{font-family:var(--mono);font-size:.82rem;white-space:nowrap}
+.num td.v small{color:var(--ink3)}
+.num tr.null td{color:var(--ink2)}
+.num td.best{font-weight:600;color:var(--A)}
+.verdicts{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,230px),1fr));gap:12px}
+.verdict{background:var(--panel);border:1px solid var(--rule);border-top:3px solid var(--rule2);border-radius:6px;padding:14px 16px;display:flex;flex-direction:column;gap:6px}
+.verdict .lbl{font-family:var(--sans);font-size:.72rem;letter-spacing:.1em;text-transform:uppercase;font-weight:700}
+.verdict p{font-size:.95rem}
+.verdict small{font-family:var(--sans);font-size:.78rem;color:var(--ink3)}
+.verdict.A{border-top-color:var(--A)} .verdict.A .lbl{color:var(--A)}
+.verdict.B{border-top-color:var(--B)} .verdict.B .lbl{color:var(--B)}
+.verdict.C{border-top-color:var(--C)} .verdict.C .lbl{color:var(--C)}
+.verdict.D{border-top-color:var(--D)} .verdict.D .lbl{color:var(--D)}
+.verdict.D p{color:var(--ink3)}
+.card .now{font-family:var(--sans);font-size:.85rem;color:var(--ink2);border-top:1px solid var(--rule);padding-top:10px}
+@media (max-width:560px){body{padding:0 16px}.wrap{padding-block:32px 56px;gap:44px}}
 </style>
 
 <div class="wrap">
 
 <header class="intro">
-  <span class="eyebrow">Project overview · branch C in progress</span>
+  <span class="eyebrow">Project overview · branches A, B and C in progress · 18 October 2026</span>
   <h1>mdbench</h1>
   <p class="lede">A method-ladder benchmark for molecular simulation. Four scientific questions, each answered at five levels of rigour, on systems with published experimental data, all on one 6&nbsp;GB laptop GPU.</p>
   <p>Nothing here predicts anything new. Each calculation is scored against measured values (ITC binding data, crystal endpoints, smFRET distributions, mutant kcat series), and its wall-clock cost is recorded beside the score. Plotting accuracy against log cost for each branch shows where extra rigour stops paying.</p>
@@ -165,27 +200,112 @@ footer a:hover,footer a:focus-visible,.note a:hover,.note a:focus-visible{color:
     <tbody>
       <tr class="C">
         <th class="br"><span class="tag">C</span><span class="q">Which conformations, with what probability?</span><span class="first">Built first</span></th>
-        <td class="l0">Boltzmann over crystal endpoints</td><td>Static CV values</td><td>Histogram from unbiased MD</td><td>Metadynamics / umbrella + MSM</td><td>ML-potential FES for alanine dipeptide</td>
+        <td class="l0 ran">Boltzmann over crystal endpoints<span class="s">Ran · ala2, AdK</span></td><td class="ran">Static CV values<span class="s">Ran · ala2, AdK</span></td><td class="ran">Histogram from unbiased MD<span class="s">Ran · ala2</span></td><td class="ran">Metadynamics / umbrella + MSM<span class="s">Ran · ala2</span></td><td>ML-potential FES for alanine dipeptide<span class="s">Deferred</span></td>
       </tr>
       <tr class="A">
         <th class="br"><span class="tag">A</span><span class="q">How well does this ligand bind?</span></th>
-        <td class="l0">Ligand heavy-atom count</td><td>Docking score</td><td>MM/GBSA on short MD</td><td>ABFE / RBFE with MBAR</td><td>ML/MM correction on the ligand</td>
+        <td class="l0 ran">Ligand heavy-atom count<span class="s">Ran · CB7, T4L</span></td><td class="ran">Docking score<span class="s">Ran · CB7, T4L</span></td><td class="ran">MM/GBSA on short MD<span class="s">Ran · CB7, T4L</span></td><td class="part">ABFE / RBFE with MBAR<span class="s">Pilot · 1 CB7 guest</span></td><td>ML/MM correction on the ligand<span class="s">Deferred</span></td>
       </tr>
       <tr class="B">
         <th class="br"><span class="tag">B</span><span class="q">How does this protein move?</span></th>
-        <td class="l0">Anisotropic network model</td><td>Normal modes from one structure</td><td>RMSF, contacts, PCA on short MD</td><td>Long or parallel MD, reversible transitions</td><td>MACE-OFF on a small peptide</td>
+        <td class="l0 ran">Anisotropic network model<span class="s">Ran · AdK</span></td><td class="ran">Normal modes from one structure<span class="s">Ran · AdK</span></td><td class="ran">RMSF, contacts, PCA on short MD<span class="s">Ran · AdK</span></td><td>Long or parallel MD, reversible transitions<span class="s">Configured</span></td><td>MACE-OFF on a small peptide<span class="s">Deferred</span></td>
       </tr>
       <tr class="D">
         <th class="br"><span class="tag">D</span><span class="q">What makes one enzyme faster?</span></th>
-        <td class="l0">kcat of nearest characterised homolog</td><td>Active-site geometry</td><td>NAC populations, field at the bond</td><td>PMF along the reaction coordinate</td><td>QM/MM barrier with xTB</td>
+        <td class="l0">kcat of nearest characterised homolog<span class="s">Planned</span></td><td>Active-site geometry<span class="s">Planned</span></td><td>NAC populations, field at the bond<span class="s">Planned</span></td><td>PMF along the reaction coordinate<span class="s">Planned</span></td><td>QM/MM barrier with xTB<span class="s">Planned</span></td>
       </tr>
     </tbody>
   </table>
   </div>
   <div class="legend">
     <span><i class="sw dash"></i>Null baseline: must exist and be scored before L3 runs</span>
-    <span><i class="sw first"></i>Branch built first</span>
+    <span><i class="sw ranA"></i>Ran, rows in results (tinted in the branch colour)</span>
+    <span><i class="sw part"></i>Pilot only</span>
+    <span><i class="sw"></i>Configured, deferred or planned</span>
   </div>
+</section>
+
+<section>
+  <span class="eyebrow">Verdicts so far</span>
+  <h2>Where extra rigour stopped paying</h2>
+  <p>The one-sentence product of each branch, as far as the runs go today. Every one of these is provisional until the branch's top level has run.</p>
+  <div class="verdicts">
+    <div class="verdict A"><span class="lbl">A · CB7 host–guest</span><p>Ranking peaked at L1 docking (ρ 0.52); MM/GBSA ranked worse at about 100× the cost.</p><small>15 guests; no level clears the null's 95% CI</small></div>
+    <div class="verdict A"><span class="lbl">A · T4L L99A</span><p>Ranking still rising at L2 (ρ 0.75 with MM/GBSA); no flattening yet.</p><small>7 ligands; L3 not run</small></div>
+    <div class="verdict B"><span class="lbl">B · Adenylate kinase</span><p>For the closing motion, rigour above L0 did not pay: one second of ANM captures 97% of it.</p><small>10-ns MD scale; no transitions seen</small></div>
+    <div class="verdict C"><span class="lbl">C · Alanine dipeptide</span><p>L0–L2 match L3 on the major basin; the rare αL basin needed L3 to be sampled at all.</p><small>Agreement between methods; no experimental reference yet</small></div>
+    <div class="verdict D"><span class="lbl">D · Enzymes</span><p>Not started.</p><small>Planning stage</small></div>
+  </div>
+</section>
+
+<section class="prog A">
+  <span class="eyebrow">Branch A progress · 18 October 2026</span>
+  <h2>Branch A: CB7 and T4 lysozyme L99A through L2, first ABFE converged</h2>
+  <p>68 rows are in <span class="mono">results/a.parquet</span>, each scored against a measured binding free energy: 15 CB7 guests from the benchmarksets collection (ITC, 298&nbsp;K) and 7 apolar ligands of T4 lysozyme L99A (Morton 1995, 302&nbsp;K). Both use Sage 2.3.0 with ff14SB, TIP3P water and 50&nbsp;mM NaCl, and every level uses the same parameterised systems.</p>
+  <div class="scroll">
+    <div class="status" role="table" aria-label="Branch A status by system and level">
+      <div></div><div class="h">L0</div><div class="h">L1</div><div class="h">L2</div><div class="h">L3</div><div class="h">L4</div>
+      <div class="sysn">CB7 host–guest<small>15 guests, ~3.7k atoms</small></div>
+      <div class="st ran"><b>Ran</b><span>Heavy-atom count, leave-one-out fit · &lt;1 s</span></div>
+      <div class="st ran"><b>Ran</b><span>Vina, rigid ensemble · 13 s/guest</span></div>
+      <div class="st ran"><b>Ran</b><span>MM/GBSA, 3 × 2 ns · 23 min/guest</span></div>
+      <div class="st part"><b>Pilot</b><span>ABFE, amantadine only · 2.7 h</span></div>
+      <div class="st def"><b>Deferred</b><span>needs the mdbench-ml env</span></div>
+      <div class="sysn">T4L L99A<small>7 ligands, ~35k atoms</small></div>
+      <div class="st ran"><b>Ran</b><span>Heavy-atom count, leave-one-out fit · &lt;1 s</span></div>
+      <div class="st ran"><b>Ran</b><span>Vina, crystal receptor · 19 s/ligand</span></div>
+      <div class="st ran"><b>Ran</b><span>MM/GBSA, 3 × 1 ns · 25 min/ligand</span></div>
+      <div class="st cfg"><b>Configured</b><span>ABFE · ≈10–20 h/ligand</span></div>
+      <div class="st def"><b>Deferred</b><span>needs the mdbench-ml env</span></div>
+    </div>
+  </div>
+
+  <figure class="chart scroll"><figcaption>Ranking against cost <span>Spearman ρ vs experiment with bootstrap 95% CI · grey band: the L0 null's CI</span></figcaption><svg id="a-rank" viewBox="0 0 960 300" role="img" aria-label="Spearman rho against wall clock per ligand for each level, CB7 and T4L"></svg></figure>
+
+  <div class="scroll"><table class="num">
+    <thead><tr><th>Series</th><th>Level</th><th>Spearman ρ [95% CI]</th><th>Pairwise</th><th>RMSE</th><th>Cost per ligand</th></tr></thead>
+    <tbody id="a-table"></tbody>
+  </table></div>
+
+  <figure class="chart scroll"><figcaption>Predicted against measured, per level <span>kcal/mol · each panel on its own vertical scale · dashed: y = x where it is in range</span></figcaption><svg id="a-scatter" viewBox="0 0 960 520" role="img" aria-label="Predicted versus experimental binding free energy for each ligand at L0, L1 and L2"></svg></figure>
+
+  <figure class="chart scroll"><figcaption>ABFE convergence, CB7 amantadine, complex leg <span>overlap between neighbouring λ states, log scale</span></figcaption><svg id="a-ov" viewBox="0 0 960 300" role="img" aria-label="Neighbour overlap per lambda pair for the pilot and dense schedules"></svg></figure>
+
+  <ul class="findings">
+    <li><b>No level beats the null yet.</b> With 7–15 ligands every 95% interval overlaps the heavy-atom null's. The ranking differences are suggestive, not established.</li>
+    <li><b>CB7 flattens at L1.</b> Vina ranks best (ρ 0.52, pairwise 0.71) at 13 s a guest. MM/GBSA, at 23 minutes a guest, falls back to ρ 0.28.</li>
+    <li><b>T4L keeps rising.</b> ρ goes 0.36 → 0.50 → 0.75 from L0 to L2. The measured range is only 2 kcal/mol, and the null already sits at 0.67 kcal/mol RMSE.</li>
+    <li class="flag"><b>MM/GBSA absolute values are not physical.</b> With no entropy term it overbinds CB7 by about 30 kcal/mol and T4L by about 18, so only its ranking is compared.</li>
+    <li><b>The first ABFE converged on its second schedule.</b> Halving the electrostatics windows took the worst overlap from 0.014 to 0.14 and gave replica round trips (5 complex, 3 solvent). Amantadine: −20.6 ± 0.6 against −17.19 kcal/mol measured.</li>
+    <li class="flag"><b>The remaining overbinding is not sampling.</b> The schedule moved the answer by 1.4 kcal/mol; 3.4 kcal/mol is left. Fixed-charge models overbind cationic CB7 guests, and the sodium in the experiment's acetate buffer is not modelled.</li>
+  </ul>
+</section>
+
+<section class="prog B">
+  <span class="eyebrow">Branch B progress · 17 October 2026</span>
+  <h2>Branch B: adenylate kinase through L2</h2>
+  <p>34 rows are in <span class="mono">results/b.parquet</span>. The score is how well each method's motions point along the crystal open→closed displacement (4AKE → 1AKE, C-alpha atoms): overlap 1 means the motion lies entirely in the method's modes.</p>
+  <div class="scroll">
+    <div class="status" role="table" aria-label="Branch B status by level">
+      <div></div><div class="h">L0</div><div class="h">L1</div><div class="h">L2</div><div class="h">L3</div><div class="h">L4</div>
+      <div class="sysn">Adenylate kinase<small>214 residues, 40k atoms solvated</small></div>
+      <div class="st ran"><b>Ran</b><span>ANM and a random-subspace null · 1 s</span></div>
+      <div class="st ran"><b>Ran</b><span>All-atom normal modes, GBn2 · 82 min</span></div>
+      <div class="st ran"><b>Ran</b><span>3 × 10 ns MD, PCA · 3.9 h</span></div>
+      <div class="st cfg"><b>Configured</b><span>pools branch C's 5 × 100 ns · needs approval</span></div>
+      <div class="st def"><b>Deferred</b><span>MACE-OFF is for a small peptide, not AdK</span></div>
+    </div>
+  </div>
+  <div class="pair">
+    <figure class="chart"><figcaption>Open→closed overlap captured by the softest modes <span>4AKE chain A → 1AKE chain A</span></figcaption><svg id="b-cum" viewBox="0 0 480 320" role="img" aria-label="Cumulative overlap against number of modes for ANM, all-atom NMA and MD PCA"></svg></figure>
+    <figure class="chart"><figcaption>Domain angles in the three MD replicates <span>degrees · shaded: the closed box</span></figcaption><svg id="b-theta" viewBox="0 0 480 320" role="img" aria-label="Theta NMP against theta LID for three 10 ns trajectories"></svg></figure>
+  </div>
+  <ul class="findings">
+    <li><b>The closing motion is in the softest modes.</b> Ten ANM modes capture 97% of the open→closed displacement, all-atom NMA 97%, and 3 × 10 ns of MD 93% in its top ten PCs. A random subspace of the same size captures 12%.</li>
+    <li><b>Direction matters.</b> Modes of the closed structure describe opening less well (ANM 0.74, all-atom 0.83) than modes of the open structure describe closing.</li>
+    <li><b>No transitions.</b> None of the three 10-ns replicates entered the closed box; the closest approach was 6.1 Å C-alpha RMSD from 1AKE. Transition fraction 0.00 ± 0.15.</li>
+    <li class="flag"><b>B-factors don't separate methods.</b> The null already reaches r = 0.75 on the open structure, so B-factor agreement is not evidence of a correct motion.</li>
+  </ul>
 </section>
 
 <section class="prog">
@@ -234,7 +354,7 @@ footer a:hover,footer a:focus-visible,.note a:hover,.note a:focus-visible{color:
 <section>
   <span class="eyebrow">Cost axis</span>
   <h2>What each rung costs on this machine</h2>
-  <p>Approximate wall-clock per calculation on the RTX&nbsp;4050, on a log scale. Solid bars come from the estimates in <span class="mono">docs/HARDWARE.md</span>; hatched bars are rough ranges inferred from the level definitions. They will be replaced by measured costs as each branch runs. Measured so far: 387 ns/day for a 24k-atom water box, about 153 ns/day for solvated adenylate kinase (40k atoms, GPU shared at the time), and about 1,660 ns/day for alanine dipeptide (885 with PLUMED attached).</p>
+  <p>Wall-clock per calculation on the RTX&nbsp;4050, on a log scale. Bars are the planning estimates: solid from <span class="mono">docs/HARDWARE.md</span>, hatched inferred from the level definitions. Dots are measured costs from the parquet rows, coloured by branch. Throughput so far: about 1,660 ns/day for alanine dipeptide (885 with PLUMED attached), 940 ns/day for a CB7 complex, 387 ns/day for a 24k-atom water box, about 190 ns/day for T4 lysozyme (35k atoms) and about 153 ns/day for solvated adenylate kinase (40k atoms, GPU shared at the time).</p>
   <div class="chart scroll"><svg id="cost" viewBox="0 0 960 330" role="img" aria-label="Log-scale wall-clock ranges for levels L0 to L4"></svg></div>
 </section>
 
@@ -250,7 +370,7 @@ footer a:hover,footer a:focus-visible,.note a:hover,.note a:focus-visible{color:
       <tr><td><b>T4 lysozyme L99A</b> <span class="count">· 3</span></td><td class="c"><i class="dot dA"></i></td><td class="c"><i class="dot dB"></i></td><td class="c"><i class="dot dC"></i></td><td class="c none">—</td><td class="size">164 res</td><td class="why">The ABFE benchmark; the cavity also breathes, giving a B/C system for free.</td></tr>
       <tr><td><b>Adenylate kinase</b> <span class="count">· 2½</span></td><td class="c none">—</td><td class="c"><i class="dot dB"></i></td><td class="c"><i class="dot dC"></i></td><td class="c"><i class="dot half dD" title="partial"></i></td><td class="size">214 res</td><td class="why">Domain-motion reference. Its rate-limiting step is the conformational change itself.</td></tr>
       <tr><td><b>Alanine dipeptide</b> <span class="count">· 1</span></td><td class="c none">—</td><td class="c none">—</td><td class="c"><i class="dot dC"></i></td><td class="c none">—</td><td class="size">22 atoms</td><td class="why">Correctness check. If the Ramachandran FES is wrong, everything above it is wrong.</td></tr>
-      <tr><td><b>CB7 host–guest</b> <span class="count">· 1</span></td><td class="c"><i class="dot dA"></i></td><td class="c none">—</td><td class="c none">—</td><td class="c none">—</td><td class="size">~3k atoms</td><td class="why">ABFE that finishes in hours, so the alchemy machinery is debugged before it costs days.</td></tr>
+      <tr><td><b>CB7 host–guest</b> <span class="count">· 1</span></td><td class="c"><i class="dot dA"></i></td><td class="c none">—</td><td class="c none">—</td><td class="c none">—</td><td class="size">~3.7k atoms</td><td class="why">ABFE that finishes in hours, so the alchemy machinery is debugged before it costs days.</td></tr>
     </tbody>
   </table>
   </div>
@@ -267,6 +387,7 @@ footer a:hover,footer a:focus-visible,.note a:hover,.note a:focus-visible{color:
       <span class="lbl">Done when</span>
       <ul><li>Alanine dipeptide FES matches published surfaces</li><li>Metadynamics and umbrella FES for ADK agree, or the gap is explained</li><li>MSM with validated implied timescales gives populations</li></ul>
       <p class="open">Open: how much simulation does the ADK FES need before it stops moving?</p>
+      <p class="now">Now: alanine dipeptide through L3; AdK L0–L1 run, long runs configured (days, need approval).</p>
     </article>
     <article class="card A">
       <h3><span class="k">A</span>Binding affinity</h3>
@@ -274,6 +395,7 @@ footer a:hover,footer a:focus-visible,.note a:hover,.note a:focus-visible{color:
       <span class="lbl">Done when</span>
       <ul><li>L0–L3 run on CB7 and T4L with uncertainty and wall-clock</li><li>Spearman, pairwise accuracy and RMSE with bootstrap CIs</li><li>Flattening point named; disk under 40 GB</li></ul>
       <p class="open">Open: is L2→L3 worth 100× the compute for ranking specifically?</p>
+      <p class="now">Now: L0–L2 on CB7 and T4L, scored; first ABFE converged; CB7 campaign (~38 h) awaits approval.</p>
     </article>
     <article class="card B">
       <h3><span class="k">B</span>Conformational change</h3>
@@ -281,6 +403,7 @@ footer a:hover,footer a:focus-visible,.note a:hover,.note a:focus-visible{color:
       <span class="lbl">Done when</span>
       <ul><li>ANM motion for ADK scored before any MD runs</li><li>Replicate MD, with the number that saw a transition recorded</li><li>Protein-only XTC, branch under 30 GB</li></ul>
       <p class="open">Open: does seconds of ANM capture most of what microseconds of MD show?</p>
+      <p class="now">Now: at the 10-ns scale, yes (97% vs 93%). L3 waits on branch C's 100-ns runs.</p>
     </article>
     <article class="card D">
       <h3><span class="k">D</span>Enzymatic properties</h3>
@@ -288,6 +411,7 @@ footer a:hover,footer a:focus-visible,.note a:hover,.note a:focus-visible{color:
       <span class="lbl">Done when</span>
       <ul><li>KSI field–kcat correlation reproduced with a CI</li><li>Chorismate mutase PMF at L3 and at L4 (xTB QM/MM)</li><li>Unreproduced distal effects written up as results</li></ul>
       <p class="open">Open: does a non-polarisable force field get the KSI field right at all?</p>
+      <p class="now">Now: planning stage.</p>
     </article>
   </div>
 </section>
@@ -305,7 +429,7 @@ footer a:hover,footer a:focus-visible,.note a:hover,.note a:focus-visible{color:
   </ul>
 </section>
 
-<footer>Summarised from README.md, CLAUDE.md, docs/, intent/ and results/c.parquet in the mdbench repo, 10 October 2026. Branch C is in progress; branches A, B and D are still at the planning stage.<br>Public page: <a href="https://beleonattila.github.io/MD-sandbox/mdbench-overview.html">beleonattila.github.io/MD-sandbox/mdbench-overview.html</a> · Motion: <a href="https://beleonattila.github.io/MD-sandbox/mdbench-motion.html">mdbench-motion.html</a> · Source: <a href="https://github.com/beleonattila/MD-sandbox">github.com/beleonattila/MD-sandbox</a></footer>
+<footer>Summarised from README.md, CLAUDE.md, docs/, intent/, results/{a,b,c}.parquet and the run diagnostics in the mdbench repo, 18 October 2026. Branches A, B and C are in progress; branch D is at the planning stage.<br>Public page: <a href="https://beleonattila.github.io/MD-sandbox/mdbench-overview.html">beleonattila.github.io/MD-sandbox/mdbench-overview.html</a> · Motion: <a href="https://beleonattila.github.io/MD-sandbox/mdbench-motion.html">mdbench-motion.html</a> · Source: <a href="https://github.com/beleonattila/MD-sandbox">github.com/beleonattila/MD-sandbox</a></footer>
 </div>
 
 <script>
@@ -338,6 +462,23 @@ footer a:hover,footer a:focus-visible,.note a:hover,.note a:focus-visible{color:
       else if(b.lab==='left') el('text',{x:x1-8,y:cy+4,'font-size':12,'text-anchor':'end'},b.t);
       else el('text',{x:x2+8,y:cy+4,'font-size':12},b.t);
     });
+  });
+  // Measured costs (seconds per calculation) from results/{a,b,c}.parquet, 18 Oct 2026.
+  const measured=[
+    {lv:0,br:'A',s:1,t:'CB7/T4L heavy-atom null (under 1 s)'},{lv:0,br:'B',s:3.3,t:'AdK ANM + random null'},{lv:0,br:'C',s:78,t:'ala2 Boltzmann minima'},{lv:0,br:'C',s:180,t:'AdK endpoint energies'},
+    {lv:1,br:'A',s:13,t:'CB7 Vina, per guest'},{lv:1,br:'A',s:19,t:'T4L Vina, per ligand'},{lv:1,br:'C',s:121,t:'ala2 static CV + harmonic'},{lv:1,br:'B',s:4942,t:'AdK all-atom NMA'},
+    {lv:2,br:'A',s:1360,t:'CB7 MM/GBSA, per guest'},{lv:2,br:'A',s:1524,t:'T4L MM/GBSA, per ligand'},{lv:2,br:'C',s:2834,t:'ala2 5 × 10 ns MD'},{lv:2,br:'B',s:14177,t:'AdK 3 × 10 ns MD'},
+    {lv:3,br:'C',s:1739,t:'ala2 umbrella'},{lv:3,br:'C',s:1975,t:'ala2 WT-metad'},{lv:3,br:'C',s:2836,t:'ala2 MSM'},{lv:3,br:'A',s:9675,t:'CB7 ABFE, amantadine (dense schedule)'},
+  ];
+  measured.forEach((m,i)=>{
+    const cy=T+m.lv*rowH+rowH/2, off={A:-13,B:13,C:13}[m.br];
+    const c=el('circle',{cx:x(m.s),cy:cy+off,r:5,fill:'var(--'+m.br+')',stroke:'var(--panel)','stroke-width':1.5});
+    const tt=document.createElementNS(NS,'title');tt.textContent=m.br+' · '+m.t;c.appendChild(tt);
+  });
+  [['A',0],['B',1],['C',2]].forEach(([b,i])=>{
+    const lx=L+i*160;
+    el('circle',{cx:lx,cy:bottom+34,r:5,fill:'var(--'+b+')'});
+    el('text',{x:lx+10,y:bottom+38,'font-size':11.5},'measured, branch '+b);
   });
   el('text',{x:R,y:bottom+38,'text-anchor':'end','font-size':11,style:'fill:var(--ink3)'},'wall-clock per calculation, log scale');
 })();
@@ -379,6 +520,173 @@ footer a:hover,footer a:focus-visible,.note a:hover,.note a:focus-visible{color:
       [x1,x2].forEach(xx=>el('line',{x1:xx,x2:xx,y1:cy-5,y2:cy+5,stroke:col,'stroke-width':2}));
       el('circle',{cx:x(v[0]),cy,r:4.5,fill:col,stroke:'var(--panel)','stroke-width':1.5});
     });
+  });
+})();
+
+// Branch A and B charts. DATA: results/a.parquet, reports/a_scores.csv, the CB7 g23 ABFE
+// leg summaries, and the AdK mode overlaps / domain-angle series from runs/b, 18 Oct 2026.
+const DATA={"A":{"cb7":{"L0":[["cb7_s1_g1",-12.13,4.35,-5.99],["cb7_s1_g3",-18.64,4.42,-6.55],["cb7_s1_g5",-11.38,4.34,-18.22],["cb7_s1_g17",-11.07,4.66,-11.33],["cb7_s1_g18",-11.62,4.7,-11.59],["cb7_s1_g22",-11.58,4.54,-16.66],["cb7_s1_g23",-10.08,4.18,-17.19],["cb7_s1_g24",-12.25,4.89,-16.75],["cb7_s2_g2",-10.88,4.47,-6.31],["cb7_s2_g4",-9.4,4.81,-6.68],["cb7_s2_g5",-9.4,4.81,-6.69],["cb7_s2_g7",-9.24,4.85,-7.56],["cb7_s2_g8",-9.06,4.88,-8.6],["cb7_s2_g9",-8.91,4.88,-9.43],["cb7_s2_g20",-9.81,4.62,-12.62]],"L1":[["cb7_s1_g1",-3.01,0.01,-5.99],["cb7_s1_g3",-2.84,0.0,-6.55],["cb7_s1_g5",-6.45,0.05,-18.22],["cb7_s1_g17",-5.34,0.0,-11.33],["cb7_s1_g18",-5.52,0.0,-11.59],["cb7_s1_g22",-3.42,0.0,-16.66],["cb7_s1_g23",-5.43,0.0,-17.19],["cb7_s1_g24",-4.89,0.0,-16.75],["cb7_s2_g2",-5.47,0.01,-6.31],["cb7_s2_g4",-4.66,0.0,-6.68],["cb7_s2_g5",-4.71,0.0,-6.69],["cb7_s2_g7",-4.26,0.02,-7.56],["cb7_s2_g8",-4.8,0.0,-8.6],["cb7_s2_g9",-4.26,0.0,-9.43],["cb7_s2_g20",-5.35,0.0,-12.62]],"L2":[["cb7_s1_g1",-48.15,1.86,-5.99],["cb7_s1_g3",-37.59,2.36,-6.55],["cb7_s1_g5",-62.15,0.67,-18.22],["cb7_s1_g17",-82.63,0.09,-11.33],["cb7_s1_g18",-29.99,1.93,-11.59],["cb7_s1_g22",-34.66,0.05,-16.66],["cb7_s1_g23",-52.07,0.12,-17.19],["cb7_s1_g24",-43.04,0.07,-16.75],["cb7_s2_g2",-40.09,1.17,-6.31],["cb7_s2_g4",-37.59,0.12,-6.68],["cb7_s2_g5",-37.57,0.23,-6.69],["cb7_s2_g7",-34.1,0.34,-7.56],["cb7_s2_g8",-36.04,0.4,-8.6],["cb7_s2_g9",-39.73,0.17,-9.43],["cb7_s2_g20",-49.64,0.19,-12.62]]},"t4l":{"L0":[["t4l_benzene",-4.61,0.97,-5.19],["t4l_toluene",-5.21,0.76,-5.52],["t4l_ethylbenzene",-5.62,0.72,-5.76],["t4l_propylbenzene",-5.85,0.67,-6.55],["t4l_butylbenzene",-6.04,0.85,-6.7],["t4l_p_xylene",-5.81,0.45,-4.67],["t4l_benzofuran",-6.14,0.67,-5.46]],"L1":[["t4l_benzene",-5.47,0.0,-5.19],["t4l_toluene",-6.26,0.0,-5.52],["t4l_ethylbenzene",-6.0,0.0,-5.76],["t4l_propylbenzene",-6.21,0.01,-6.55],["t4l_butylbenzene",-6.64,0.01,-6.7],["t4l_p_xylene",-5.52,0.01,-4.67],["t4l_benzofuran",-6.76,0.0,-5.46]],"L2":[["t4l_benzene",-17.62,0.08,-5.19],["t4l_toluene",-20.58,0.49,-5.52],["t4l_ethylbenzene",-24.02,0.12,-5.76],["t4l_propylbenzene",-27.09,0.11,-6.55],["t4l_butylbenzene",-29.62,0.11,-6.7],["t4l_p_xylene",-22.71,0.37,-4.67],["t4l_benzofuran",-21.12,0.18,-5.46]]},"l3":[["cb7_s1_g23",-21.95,0.93,-17.19,4.6],["cb7_s1_g23",-20.59,0.59,-17.19,2.7]],"scores":[{"series":"cb7","level":"L0","method":"null_heavy_atom_count","n":15,"rmse":4.994,"spearman":0.082,"spearman_lo":-0.486,"spearman_hi":0.649,"pairwise":0.514,"wall_clock_s_per_guest":0.003},{"series":"cb7","level":"L1","method":"vina_rigid_ensemble","n":15,"rmse":7.313,"spearman":0.525,"spearman_lo":-0.06,"spearman_hi":0.923,"pairwise":0.714,"wall_clock_s_per_guest":13.009},{"series":"cb7","level":"L2","method":"mmgbsa_obc2","n":15,"rmse":35.704,"spearman":0.279,"spearman_lo":-0.366,"spearman_hi":0.714,"pairwise":0.562,"wall_clock_s_per_guest":1360.187},{"series":"t4l","level":"L0","method":"null_heavy_atom_count","n":7,"rmse":0.668,"spearman":0.357,"spearman_lo":-0.556,"spearman_hi":1.0,"pairwise":0.667,"wall_clock_s_per_guest":0.012},{"series":"t4l","level":"L1","method":"vina_rigid_ensemble","n":7,"rmse":0.679,"spearman":0.5,"spearman_lo":-0.593,"spearman_hi":1.0,"pairwise":0.667,"wall_clock_s_per_guest":18.807},{"series":"t4l","level":"L2","method":"mmgbsa_obc2","n":7,"rmse":17.859,"spearman":0.75,"spearman_lo":-0.176,"spearman_hi":1.0,"pairwise":0.81,"wall_clock_s_per_guest":1523.736}],"overlap":{"pilot":{"complex":[0.247,0.246,0.246,0.014,0.034,0.031,0.04,0.044,0.276,0.241,0.241,0.23,0.17,0.243,0.212,0.202,0.21,0.23,0.196,0.208,0.234,0.242,0.287],"solvent":[0.029,0.028,0.035,0.042,0.044,0.3,0.239,0.23,0.249,0.165,0.254,0.223,0.211,0.218,0.226,0.214,0.194,0.2,0.231,0.286],"dG":-21.9,"sd":0.9,"trips":[0,0]},"dense":{"complex":[0.196,0.196,0.196,0.139,0.2,0.167,0.204,0.201,0.201,0.208,0.22,0.206,0.22,0.19,0.238,0.227,0.241,0.232,0.169,0.242,0.214,0.202,0.211,0.234,0.185,0.215,0.232,0.239,0.288],"solvent":[0.311,0.287,0.168,0.206,0.187,0.205,0.203,0.216,0.225,0.216,0.173,0.254,0.221,0.236,0.232,0.179,0.249,0.221,0.214,0.217,0.224,0.217,0.192,0.2,0.232,0.285],"dG":-20.6,"sd":0.6,"trips":[5,3]}}},"B":{"anm":[0.799,0.845,0.852,0.905,0.941,0.941,0.943,0.961,0.966,0.966],"nma":[0.8,0.898,0.91,0.952,0.954,0.965,0.967,0.967,0.969,0.979],"pca":[[0.748,0.899,0.905,0.905,0.906,0.921,0.923,0.924,0.925,0.934],[0.637,0.785,0.828,0.828,0.849,0.868,0.878,0.878,0.89,0.895],[0.66,0.842,0.919,0.932,0.938,0.939,0.939,0.95,0.95,0.95]],"theta":[[[71.8,142.1],[73.5,143.4],[73.4,141.3],[72.3,135.0],[70.8,140.8],[70.6,140.1],[70.2,141.0],[71.0,138.6],[74.7,137.1],[73.3,139.7],[72.5,143.3],[70.4,140.2],[76.3,136.7],[73.6,132.4],[71.8,136.2],[71.7,136.4],[71.3,141.7],[71.9,142.3],[73.5,142.6],[74.4,140.1],[69.7,146.0],[70.9,143.4],[75.0,141.7],[72.3,139.9],[72.5,139.5],[70.4,143.8],[75.5,142.0],[79.3,139.1],[76.6,134.5],[74.9,135.9],[71.8,133.0],[69.1,130.0],[73.7,128.1],[73.7,129.5],[76.2,134.7],[72.5,138.8],[72.5,139.7],[71.1,139.5],[74.9,135.2],[77.6,139.4],[77.4,137.3],[75.0,135.3],[72.1,137.8],[74.3,135.1],[76.8,138.7],[78.2,133.7],[75.3,138.3],[72.1,139.3],[75.1,142.9],[74.9,144.4],[75.5,141.0],[73.1,140.3],[72.6,146.0],[74.8,141.2],[74.3,140.9],[73.1,143.7],[68.0,141.1],[72.7,137.7],[75.5,135.9],[72.0,138.4],[68.6,137.8],[73.8,136.4],[72.5,138.3],[70.8,138.8],[69.3,142.1],[73.2,139.4],[70.4,141.6],[74.5,143.5],[72.2,141.2],[73.9,142.0],[67.0,140.4],[68.8,138.0],[70.8,135.6],[68.1,140.7],[69.7,142.9],[70.1,143.4],[72.6,146.8],[71.7,144.8],[70.0,140.2],[69.9,142.7],[70.0,140.6],[71.9,140.9],[72.2,144.3],[76.7,136.8],[74.1,139.5],[74.4,132.8],[74.0,134.0],[72.0,136.3],[71.6,139.8],[68.0,138.7],[71.2,135.6],[70.2,137.6],[67.0,137.5],[69.4,137.3],[71.7,133.3],[75.1,132.8],[69.9,132.8],[72.7,134.3],[69.4,131.1],[70.5,137.0],[69.9,132.1],[70.5,129.7],[73.5,134.5],[72.2,134.1],[74.3,136.2],[74.1,136.7],[70.6,132.5],[70.4,130.3],[73.5,133.8],[71.7,138.5],[77.2,138.4],[72.1,138.3],[68.5,140.2],[70.3,133.7],[73.2,135.3],[76.4,139.2],[71.8,143.3],[74.1,146.9],[71.0,147.6],[73.9,144.6],[73.2,145.4],[72.9,151.4],[73.6,148.0],[70.1,158.5],[75.4,152.8],[74.3,150.1],[73.4,149.3],[70.5,150.6],[69.4,145.4],[71.0,149.7],[71.9,146.4],[74.2,139.6],[71.6,140.9],[76.0,137.8],[72.5,140.2],[73.7,142.8],[72.1,139.1],[72.2,138.1],[67.5,141.5],[65.5,142.2],[66.6,139.0],[68.0,142.0],[70.5,140.5],[67.6,141.1],[65.8,139.4],[68.7,142.0],[73.6,141.8],[71.6,144.8],[72.2,144.0],[72.6,143.2],[71.7,139.0],[70.7,139.4],[72.6,136.7],[71.7,134.1],[75.0,135.0],[77.2,134.1],[75.0,138.7],[72.8,140.3],[71.2,141.4],[71.4,142.1],[72.9,141.7],[72.3,143.4],[72.4,147.9],[73.6,145.2],[71.7,140.0],[73.6,145.8],[75.5,139.9],[69.5,145.0],[71.3,141.0],[70.5,138.4],[70.6,141.5],[71.5,135.8],[70.8,141.0],[68.9,142.4],[69.9,140.7],[69.1,140.9],[67.8,141.9],[69.7,138.5],[68.8,139.2],[72.9,143.2],[71.7,148.0],[73.2,150.3],[74.6,147.6],[71.5,148.4],[73.3,145.3],[72.3,151.1],[69.4,153.9],[66.2,146.1],[70.4,143.4],[72.1,139.2],[72.0,141.3],[72.2,140.3],[68.7,134.0],[68.0,134.0],[65.4,143.8],[69.9,140.6],[69.8,143.0],[71.9,143.7],[69.9,145.5],[75.0,142.6],[77.0,140.9],[73.6,141.6],[80.2,145.5],[74.6,147.7],[76.4,144.9],[73.2,145.0],[73.6,145.9],[71.8,146.4],[72.9,142.1],[73.0,143.2],[71.3,140.8],[71.3,142.4],[73.3,139.0],[69.2,140.7],[67.7,143.1],[64.9,147.6],[67.4,140.0],[66.2,137.1],[63.3,136.4],[65.6,132.7],[61.9,139.0],[61.5,134.8],[68.5,135.0],[62.7,136.9],[62.0,137.4],[64.3,138.7],[62.1,135.9],[62.3,141.3],[60.1,135.8],[59.3,136.7],[58.8,140.4],[59.2,140.9],[57.5,141.1],[60.6,142.6],[61.8,141.5],[65.4,144.3],[63.8,146.7],[64.8,145.9],[63.0,148.4],[66.0,146.9],[70.8,140.8],[71.8,143.3],[67.3,144.4],[69.7,145.8],[68.6,147.8],[67.9,148.8],[66.7,155.4],[69.3,155.5],[71.4,159.9],[72.0,158.2]],[[70.3,141.6],[68.8,140.3],[67.2,143.1],[70.9,134.1],[71.4,134.8],[72.9,134.2],[73.6,131.1],[72.7,137.0],[71.7,141.4],[68.4,137.1],[71.9,137.3],[76.4,144.6],[73.1,146.9],[74.0,144.1],[72.5,144.1],[72.3,142.4],[76.1,143.6],[71.3,146.0],[70.7,147.4],[70.5,150.2],[69.0,153.7],[70.7,152.2],[75.0,142.7],[70.5,149.0],[74.7,143.1],[77.4,138.0],[77.4,131.3],[77.0,130.4],[78.6,132.2],[72.4,135.9],[74.8,134.3],[75.5,135.1],[74.9,135.0],[69.9,132.5],[73.4,135.1],[72.1,140.2],[73.6,137.9],[76.1,134.8],[78.5,130.5],[80.8,131.3],[75.9,138.4],[79.2,132.9],[78.0,138.3],[77.9,138.2],[81.8,138.3],[80.3,136.9],[79.6,137.6],[81.2,140.1],[78.7,143.9],[77.7,142.0],[76.6,140.1],[75.5,144.6],[76.2,142.8],[78.4,147.4],[77.9,149.4],[80.1,155.1],[82.1,153.8],[81.6,150.7],[82.1,149.7],[79.9,153.0],[75.5,146.3],[72.6,154.8],[75.7,155.5],[79.2,156.2],[80.5,152.2],[79.1,152.7],[75.9,151.3],[73.9,148.6],[72.6,150.7],[77.5,142.7],[74.9,147.6],[75.2,150.3],[74.6,148.5],[72.3,153.9],[71.4,151.6],[75.7,152.4],[81.9,148.4],[79.1,154.0],[80.9,153.7],[79.2,158.9],[75.7,155.0],[76.1,151.4],[76.9,149.2],[74.9,148.9],[79.7,151.3],[78.7,153.4],[80.3,155.5],[77.4,150.6],[80.4,153.7],[82.6,153.3],[85.2,157.7],[79.0,161.2],[80.4,154.0],[86.5,159.6],[87.8,158.0],[85.2,163.3],[87.0,164.1],[85.6,165.7],[84.3,164.7],[85.2,161.7],[88.8,157.8],[86.1,157.8],[86.8,153.5],[83.0,161.7],[83.5,165.5],[83.7,156.8],[86.1,156.6],[80.9,161.5],[83.1,160.2],[84.5,160.8],[87.4,159.1],[84.5,161.1],[86.5,162.6],[82.2,167.5],[80.6,166.6],[84.2,171.5],[90.0,168.3],[87.1,163.9],[90.9,168.0],[90.6,168.9],[90.4,168.3],[86.8,162.2],[89.7,160.4],[91.2,158.5],[89.7,165.9],[87.2,157.4],[83.3,163.0],[86.4,160.2],[83.0,157.5],[85.6,158.4],[88.3,160.6],[85.2,157.7],[83.4,159.2],[82.7,161.8],[83.8,167.0],[80.9,167.2],[81.8,160.8],[80.2,156.4],[80.1,157.7],[83.2,153.2],[79.9,156.2],[82.4,157.2],[81.0,153.9],[82.0,153.8],[82.8,151.3],[82.9,158.7],[84.0,158.6],[83.5,158.9],[84.5,157.9],[81.4,163.3],[83.5,165.6],[82.1,164.5],[79.6,163.7],[82.6,165.1],[82.9,159.5],[79.7,167.6],[77.8,166.7],[76.1,165.0],[79.9,165.7],[82.4,162.9],[80.7,162.1],[81.1,165.7],[82.4,165.2],[82.5,163.9],[84.5,166.3],[80.7,165.9],[82.4,158.6],[82.3,160.7],[79.4,161.7],[79.7,161.0],[78.6,163.8],[78.4,163.9],[79.9,165.8],[77.8,162.9],[78.9,165.0],[81.6,166.2],[83.2,162.3],[80.4,165.6],[83.9,162.9],[80.0,163.7],[78.7,167.9],[80.6,165.8],[80.6,165.1],[78.5,168.9],[78.4,167.3],[81.3,160.8],[77.4,164.9],[80.2,162.5],[81.0,163.9],[79.5,168.2],[75.6,163.1],[72.2,159.3],[77.2,150.7],[79.0,154.4],[75.4,155.7],[74.6,154.7],[76.9,156.2],[74.5,158.5],[74.4,158.3],[75.3,159.8],[76.3,158.6],[78.9,150.0],[77.2,146.9],[75.1,155.7],[76.4,154.3],[76.4,154.8],[83.1,145.3],[84.5,146.9],[82.8,146.4],[83.9,152.8],[82.1,145.0],[80.6,151.0],[78.6,157.8],[77.8,157.5],[76.0,153.9],[78.1,145.7],[75.6,151.2],[75.5,147.6],[76.4,146.3],[72.7,150.5],[72.7,143.2],[69.1,145.6],[75.7,137.5],[77.4,134.6],[78.1,136.6],[78.1,133.9],[78.8,136.5],[82.9,138.9],[80.6,135.3],[77.1,138.1],[78.6,139.1],[78.2,147.3],[79.1,148.7],[75.7,151.6],[75.9,150.3],[77.5,152.9],[74.3,154.2],[76.4,155.1],[72.4,153.4],[77.2,145.0],[73.4,149.6],[77.4,152.7],[74.3,152.6],[68.8,158.4],[70.3,156.4],[69.3,156.6],[73.3,153.6],[74.9,149.6],[77.9,148.5],[76.3,146.5]],[[72.7,147.7],[70.1,147.8],[70.3,149.4],[73.8,151.7],[72.9,148.5],[71.8,146.5],[74.3,148.5],[72.7,146.3],[72.8,149.0],[72.0,149.6],[68.0,147.8],[69.6,147.0],[73.5,141.4],[73.2,139.0],[75.0,139.8],[73.2,142.1],[74.3,143.7],[73.3,144.7],[73.1,151.3],[72.9,150.0],[78.2,150.6],[75.3,150.9],[76.1,151.7],[70.9,153.4],[74.8,155.3],[71.8,153.6],[73.9,149.6],[72.2,150.1],[76.5,149.0],[69.9,145.8],[72.0,145.7],[72.3,151.2],[72.0,150.6],[72.0,152.3],[67.6,154.9],[68.8,153.0],[73.7,150.6],[76.8,150.7],[75.4,154.5],[75.1,155.0],[76.3,153.9],[81.7,154.6],[82.5,147.1],[82.5,151.1],[81.4,148.6],[78.3,146.2],[74.3,147.2],[75.8,146.4],[71.7,147.6],[73.2,140.8],[72.2,142.7],[68.9,145.2],[70.8,140.6],[72.2,147.3],[73.2,146.5],[72.9,146.0],[71.9,144.1],[71.9,144.7],[70.8,142.5],[71.1,146.9],[70.0,142.7],[69.6,139.4],[69.7,140.0],[72.7,139.7],[70.6,143.9],[69.6,143.5],[70.6,148.3],[72.3,148.6],[70.9,152.9],[68.6,154.8],[69.4,151.9],[69.0,152.5],[65.7,155.0],[67.0,154.2],[72.0,155.4],[71.2,150.9],[72.7,150.9],[71.5,149.9],[67.3,148.7],[69.5,143.2],[66.1,145.1],[65.3,152.2],[61.9,154.0],[66.3,141.1],[69.5,138.5],[76.5,137.1],[74.2,132.5],[71.4,137.4],[71.6,141.1],[73.0,140.7],[72.0,137.3],[71.4,139.3],[74.6,134.5],[76.9,134.9],[76.4,142.1],[77.0,141.2],[78.6,138.9],[77.0,139.5],[79.7,133.9],[74.6,134.4],[72.8,138.1],[79.2,138.1],[73.4,141.2],[71.4,142.9],[76.6,137.9],[74.0,140.0],[76.4,148.6],[76.3,147.8],[76.7,144.3],[74.8,151.1],[75.4,151.4],[78.7,154.2],[81.2,150.8],[74.8,150.2],[74.6,147.2],[74.6,145.9],[76.2,148.2],[78.0,141.0],[75.8,144.8],[79.0,145.4],[81.1,136.3],[75.7,142.3],[74.9,138.8],[71.6,141.3],[73.9,138.3],[73.2,137.3],[77.6,138.0],[74.6,141.3],[74.9,144.0],[74.6,146.5],[69.5,150.9],[70.4,153.1],[70.4,155.2],[77.5,142.7],[74.9,151.1],[72.9,155.7],[75.2,156.8],[76.8,157.2],[78.6,150.4],[80.6,147.8],[77.1,153.2],[77.2,147.4],[77.6,143.5],[76.7,144.7],[78.8,143.1],[74.2,136.3],[76.1,137.5],[78.0,132.6],[76.6,141.0],[77.7,136.4],[77.8,139.4],[76.0,139.8],[79.4,138.4],[78.4,137.0],[76.9,135.4],[75.1,140.7],[76.9,144.6],[79.2,141.5],[78.5,138.9],[78.8,141.5],[74.5,142.2],[74.1,140.3],[72.7,139.8],[80.3,139.1],[80.1,136.9],[81.8,143.1],[81.5,140.3],[76.5,146.8],[77.9,148.1],[77.5,146.7],[79.4,145.8],[78.8,142.3],[81.0,139.1],[76.6,139.3],[75.7,142.4],[71.0,140.7],[76.9,138.0],[76.3,138.5],[71.5,139.7],[70.8,138.1],[75.4,137.6],[78.2,130.4],[77.0,126.4],[74.4,129.5],[74.6,129.6],[72.6,130.6],[69.5,126.7],[72.8,129.8],[74.0,133.0],[71.7,137.3],[72.2,136.4],[73.5,131.1],[69.8,130.9],[68.7,133.5],[69.1,135.9],[69.9,138.3],[66.0,138.8],[68.8,136.5],[69.0,135.5],[69.9,135.6],[66.9,131.7],[72.7,132.1],[70.3,131.3],[73.1,129.7],[73.1,130.2],[69.2,134.4],[71.2,130.1],[70.5,142.4],[69.0,143.6],[66.2,146.0],[68.9,141.9],[70.3,143.5],[72.7,142.8],[79.1,140.5],[75.1,143.4],[79.4,145.4],[71.9,148.6],[74.1,147.4],[75.5,144.3],[76.7,147.3],[80.3,143.8],[79.1,147.0],[77.2,139.6],[74.4,142.2],[75.5,139.1],[77.5,136.9],[75.9,135.6],[72.6,134.4],[75.6,132.0],[76.5,131.7],[77.2,134.8],[75.3,140.8],[78.4,138.3],[75.7,136.9],[72.4,134.5],[71.5,140.3],[71.4,137.2],[71.0,137.4],[68.8,141.3],[70.9,144.2],[71.2,146.8],[72.8,143.7],[70.6,139.6],[69.1,140.5],[68.9,143.1],[71.0,138.2],[70.0,144.1],[73.6,141.1],[75.3,137.8],[79.2,139.6]]]}};
+const SVGNS='http://www.w3.org/2000/svg';
+function mk(svg){return (n,a,t)=>{const e=document.createElementNS(SVGNS,n);for(const k in a)e.setAttribute(k,a[k]);if(t!=null)e.textContent=t;svg.appendChild(e);return e;};}
+function tip(e,t){const x=document.createElementNS(SVGNS,'title');x.textContent=t;e.appendChild(x);return e;}
+const LVNAME={L0:'L0 null',L1:'L1 Vina',L2:'L2 MM/GBSA',L3:'L3 ABFE'};
+const SERNAME={cb7:'CB7 host–guest',t4l:'T4L L99A'};
+function fmtCost(s){if(s<1)return'<1 s';if(s<60)return Math.round(s)+' s';if(s<3600)return Math.round(s/60)+' min';return(s/3600).toFixed(1)+' h';}
+
+// A: Spearman rho against cost
+(function(){
+  const svg=document.getElementById('a-rank'); if(!svg)return; const el=mk(svg);
+  const sc=DATA.A.scores, W=420, gap=50, T=34, B=250;
+  const lmin=-1, lmax=5;               // log10 seconds: 0.1 s .. ~1 day
+  ['cb7','t4l'].forEach((ser,pi)=>{
+    const L=70+pi*(W+gap), R=L+W-20;
+    const x=s=>L+(Math.log10(Math.max(s,0.1))-lmin)/(lmax-lmin)*(R-L);
+    const y=v=>T+(1-v)/2*(B-T);
+    el('text',{x:L,y:18,'font-size':14,'font-weight':600,style:'fill:var(--ink)'},SERNAME[ser]+' · n = '+sc.find(r=>r.series===ser).n);
+    [-1,-0.5,0,0.5,1].forEach(v=>{el('line',{x1:L,x2:R,y1:y(v),y2:y(v),stroke:v===0?'var(--rule2)':'var(--rule)','stroke-width':1});el('text',{x:L-8,y:y(v)+4,'text-anchor':'end','font-size':11},v.toFixed(1));});
+    [[0.1,'0.1 s'],[1,'1 s'],[60,'1 min'],[3600,'1 h'],[86400,'1 d']].forEach(([s,l])=>{el('line',{x1:x(s),x2:x(s),y1:T,y2:B,stroke:'var(--rule)','stroke-dasharray':'2 3'});el('text',{x:x(s),y:B+16,'text-anchor':'middle','font-size':11},l);});
+    const nul=sc.find(r=>r.series===ser&&r.level==='L0');
+    el('rect',{x:L,y:y(nul.spearman_hi),width:R-L,height:y(nul.spearman_lo)-y(nul.spearman_hi),fill:'var(--ink3)',opacity:.13});
+    el('line',{x1:L,x2:R,y1:y(nul.spearman),y2:y(nul.spearman),stroke:'var(--ink3)','stroke-dasharray':'5 4'});
+    el('text',{x:R,y:y(nul.spearman)-5,'text-anchor':'end','font-size':10.5,style:'fill:var(--ink3)'},'null ρ '+nul.spearman.toFixed(2));
+    const pts=sc.filter(r=>r.series===ser).sort((a,b)=>a.level<b.level?-1:1);
+    el('polyline',{points:pts.map(r=>x(r.wall_clock_s_per_guest)+','+y(r.spearman)).join(' '),fill:'none',stroke:'var(--A)','stroke-width':1.5,opacity:.5});
+    pts.forEach(r=>{
+      const cx=x(r.wall_clock_s_per_guest);
+      el('line',{x1:cx,x2:cx,y1:y(r.spearman_hi),y2:y(r.spearman_lo),stroke:'var(--A)','stroke-width':2});
+      [r.spearman_hi,r.spearman_lo].forEach(v=>el('line',{x1:cx-4,x2:cx+4,y1:y(v),y2:y(v),stroke:'var(--A)','stroke-width':2}));
+      tip(el('circle',{cx,cy:y(r.spearman),r:5.5,fill:r.level==='L0'?'var(--panel)':'var(--A)',stroke:'var(--A)','stroke-width':2}),
+          `${LVNAME[r.level]}: ρ ${r.spearman.toFixed(2)} [${r.spearman_lo.toFixed(2)}, ${r.spearman_hi.toFixed(2)}], ${fmtCost(r.wall_clock_s_per_guest)} per ligand`);
+      el('text',{x:cx+9,y:y(r.spearman)+4,'font-size':11.5,style:'fill:var(--ink)'},LVNAME[r.level]);
+    });
+    if(ser==='cb7'){ // L3: one guest, no rho yet
+      const l3=DATA.A.l3[DATA.A.l3.length-1], cx=x(l3[4]*3600);
+      el('line',{x1:cx,x2:cx,y1:T,y2:B,stroke:'var(--A)','stroke-dasharray':'3 3',opacity:.7});
+      el('text',{x:cx-5,y:T+12,'text-anchor':'end','font-size':10.5,style:'fill:var(--A)'},'L3: 1 guest, no ρ');
+    }
+  });
+  el('text',{x:20,y:(T+B)/2,'font-size':11.5,transform:`rotate(-90 20 ${(T+B)/2})`,'text-anchor':'middle'},'Spearman ρ');
+  el('text',{x:940,y:292,'text-anchor':'end','font-size':11,style:'fill:var(--ink3)'},'wall clock per ligand, log scale');
+})();
+
+// A: scores table
+(function(){
+  const tb=document.getElementById('a-table'); if(!tb)return;
+  const sc=DATA.A.scores;
+  ['cb7','t4l'].forEach(ser=>{
+    const rows=sc.filter(r=>r.series===ser), best=Math.max(...rows.map(r=>r.spearman));
+    rows.forEach((r,i)=>{
+      const tr=document.createElement('tr'); if(r.level==='L0')tr.className='null';
+      tr.innerHTML=`<td>${i===0?SERNAME[ser]+' <small class="note">n = '+r.n+'</small>':''}</td><td>${LVNAME[r.level]}</td>`+
+        `<td class="v${r.spearman===best?' best':''}">${r.spearman.toFixed(2)} <small>[${r.spearman_lo.toFixed(2)}, ${r.spearman_hi.toFixed(2)}]</small></td>`+
+        `<td class="v">${r.pairwise.toFixed(2)}</td><td class="v">${r.rmse.toFixed(1)}</td><td class="v">${fmtCost(r.wall_clock_s_per_guest)}</td>`;
+      tb.appendChild(tr);
+    });
+  });
+})();
+
+// A: predicted vs experimental, small multiples
+(function(){
+  const svg=document.getElementById('a-scatter'); if(!svg)return; const el=mk(svg);
+  const PW=280, PH=190, gx=35, gy=70;
+  ['cb7','t4l'].forEach((ser,ri)=>['L0','L1','L2'].forEach((lv,ci)=>{
+    const pts=DATA.A[ser][lv]; if(!pts.length)return;
+    const L=60+ci*(PW+gx), T=30+ri*(PH+gy), R=L+PW-20, B=T+PH;
+    const xs=pts.map(p=>p[3]), ys=pts.flatMap(p=>[p[1]-p[2],p[1]+p[2]]);
+    const pad=(a,b)=>{const d=(b-a)*0.1||1;return[a-d,b+d];};
+    const [x0,x1]=pad(Math.min(...xs),Math.max(...xs)), [y0,y1]=pad(Math.min(...ys),Math.max(...ys));
+    const x=v=>L+(v-x0)/(x1-x0)*(R-L), y=v=>B-(v-y0)/(y1-y0)*(B-T);
+    el('rect',{x:L,y:T,width:R-L,height:B-T,fill:'none',stroke:'var(--rule)'});
+    const nice=(a,b)=>{const st=[0.5,1,2,5,10,20].find(s=>(b-a)/s<=5);const o=[];for(let v=Math.ceil(a/st)*st;v<=b;v+=st)o.push(+v.toFixed(2));return o;};
+    nice(x0,x1).forEach(v=>el('text',{x:x(v),y:B+14,'text-anchor':'middle','font-size':10},v));
+    nice(y0,y1).forEach(v=>{el('line',{x1:L,x2:R,y1:y(v),y2:y(v),stroke:'var(--rule)','stroke-dasharray':'2 3'});el('text',{x:L-5,y:y(v)+3,'text-anchor':'end','font-size':10},v);});
+    const lo=Math.max(x0,y0), hi=Math.min(x1,y1);
+    if(hi>lo) el('line',{x1:x(lo),y1:y(lo),x2:x(hi),y2:y(hi),stroke:'var(--ink3)','stroke-dasharray':'5 4'});
+    pts.forEach(p=>{
+      el('line',{x1:x(p[3]),x2:x(p[3]),y1:y(p[1]-p[2]),y2:y(p[1]+p[2]),stroke:'var(--A)','stroke-width':1.5,opacity:.6});
+      tip(el('circle',{cx:x(p[3]),cy:y(p[1]),r:4,fill:'var(--A)',stroke:'var(--panel)','stroke-width':1}),
+          `${p[0]}: predicted ${p[1].toFixed(1)} ± ${p[2].toFixed(1)}, measured ${p[3].toFixed(2)} kcal/mol`);
+    });
+    const r=DATA.A.scores.find(s=>s.series===ser&&s.level===lv);
+    el('text',{x:L,y:T-8,'font-size':12.5,'font-weight':600,style:'fill:var(--ink)'},`${SERNAME[ser]} · ${LVNAME[lv]}`);
+    el('text',{x:R,y:T-8,'text-anchor':'end','font-size':11,style:'fill:var(--A)'},`ρ ${r.spearman.toFixed(2)}`);
+    if(ci===0) el('text',{x:L-38,y:(T+B)/2,'font-size':10.5,transform:`rotate(-90 ${L-38} ${(T+B)/2})`,'text-anchor':'middle'},'predicted');
+  }));
+  el('text',{x:500,y:512,'text-anchor':'middle','font-size':11,style:'fill:var(--ink3)'},'measured ΔG (kcal/mol)');
+})();
+
+// A: ABFE neighbour overlap, pilot vs dense schedule (complex leg)
+(function(){
+  const svg=document.getElementById('a-ov'); if(!svg)return; const el=mk(svg);
+  const L=70,R=930,T=20,B=240;
+  // pair index ranges per stage: restraint, electrostatics, sterics
+  const stages={pilot:[3,5,15],dense:[3,11,15]}; const frac=[0.14,0.43,0.43];
+  const y=v=>T+(Math.log10(1)-Math.log10(Math.max(v,0.01)))/2*(B-T);  // 1 .. 0.01
+  const sx=[L]; frac.forEach((f,i)=>sx.push(sx[i]+f*(R-L)));
+  ['Restraint on','Electrostatics off','Sterics off'].forEach((n,i)=>{
+    if(i%2===0) el('rect',{x:sx[i],y:T,width:sx[i+1]-sx[i],height:B-T,fill:'var(--Atint)',opacity:.5});
+    el('text',{x:(sx[i]+sx[i+1])/2,y:B+18,'text-anchor':'middle','font-size':11.5},n);
+  });
+  [1,0.3,0.1,0.03,0.01].forEach(v=>{el('line',{x1:L,x2:R,y1:y(v),y2:y(v),stroke:v===0.1?'var(--ink3)':'var(--rule)','stroke-dasharray':v===0.1?'5 4':'2 3'});el('text',{x:L-8,y:y(v)+4,'text-anchor':'end','font-size':11},v);});
+  el('text',{x:R-4,y:y(0.1)-5,'text-anchor':'end','font-size':10.5,style:'fill:var(--ink3)'},'0.1: comfortable mixing');
+  const style={pilot:{c:'var(--D)',dash:'4 3',lab:'Pilot, 24 states'},dense:{c:'var(--A)',dash:'',lab:'Dense, 30 states'}};
+  ['pilot','dense'].forEach(k=>{
+    const ov=DATA.A.overlap[k].complex, st=stages[k], pts=[]; let i=0;
+    st.forEach((n,si)=>{for(let j=0;j<n;j++,i++){pts.push([sx[si]+(j+0.5)/n*(sx[si+1]-sx[si]),y(ov[i]),ov[i]]);}});
+    el('polyline',{points:pts.map(p=>p[0]+','+p[1]).join(' '),fill:'none',stroke:style[k].c,'stroke-width':2,'stroke-dasharray':style[k].dash});
+    pts.forEach((p,j)=>tip(el('circle',{cx:p[0],cy:p[1],r:3.5,fill:style[k].c}),`${style[k].lab}, pair ${j}–${j+1}: overlap ${p[2]}`));
+  });
+  const o=DATA.A.overlap, legY=B+40;
+  [['pilot',L],['dense',L+430]].forEach(([k,lx])=>{
+    el('line',{x1:lx,x2:lx+26,y1:legY-4,y2:legY-4,stroke:style[k].c,'stroke-width':2,'stroke-dasharray':style[k].dash});
+    el('text',{x:lx+34,y:legY,'font-size':11.5,style:'fill:var(--ink)'},`${style[k].lab}: ΔG ${o[k].dG} ± ${o[k].sd} kcal/mol, round trips ${o[k].trips[0]} complex / ${o[k].trips[1]} solvent`);
+  });
+})();
+
+// B: cumulative overlap vs number of modes
+(function(){
+  const svg=document.getElementById('b-cum'); if(!svg)return; const el=mk(svg);
+  const L=50,R=460,T=16,B=260, x=k=>L+(k-1)/9*(R-L-20), y=v=>B-v*(B-T);
+  [0,0.25,0.5,0.75,1].forEach(v=>{el('line',{x1:L,x2:R,y1:y(v),y2:y(v),stroke:'var(--rule)','stroke-dasharray':'2 3'});el('text',{x:L-7,y:y(v)+4,'text-anchor':'end','font-size':11},v);});
+  for(let k=1;k<=10;k++) el('text',{x:x(k),y:B+16,'text-anchor':'middle','font-size':11},k);
+  el('text',{x:(L+R)/2,y:B+34,'text-anchor':'middle','font-size':11,style:'fill:var(--ink3)'},'number of softest modes / top PCs');
+  const lines=[
+    ...DATA.B.pca.map((c,i)=>({c,col:'var(--ink3)',w:1.3,dash:'',lab:i===0?'L2 MD PCA (3 replicates)':null,name:'L2 MD PCA, replicate '+i})),
+    {c:DATA.B.nma,col:'var(--B)',w:2,dash:'5 3',lab:'L1 all-atom NMA',name:'L1 all-atom NMA'},
+    {c:DATA.B.anm,col:'var(--B)',w:2.5,dash:'',lab:'L0 ANM',name:'L0 ANM'},
+  ];
+  lines.forEach(l=>{
+    el('polyline',{points:l.c.map((v,i)=>x(i+1)+','+y(v)).join(' '),fill:'none',stroke:l.col,'stroke-width':l.w,'stroke-dasharray':l.dash});
+    l.c.forEach((v,i)=>tip(el('circle',{cx:x(i+1),cy:y(v),r:2.5,fill:l.col}),`${l.name}, ${i+1} modes: ${v.toFixed(2)}`));
+  });
+  tip(el('circle',{cx:x(10),cy:y(0.12),r:5,fill:'var(--panel)',stroke:'var(--ink2)','stroke-width':2}),'Random 10-mode subspace (null): 0.12 ± 0.03');
+  el('text',{x:x(10)-8,y:y(0.12)+4,'text-anchor':'end','font-size':11},'random null, 10 modes');
+  [['L0 ANM','var(--B)',''],['L1 all-atom NMA','var(--B)','5 3'],['L2 MD PCA × 3','var(--ink3)','']].forEach(([t,c,d],i)=>{
+    const ly=y(0.42)+i*18;
+    el('line',{x1:x(5.4),x2:x(5.4)+22,y1:ly-4,y2:ly-4,stroke:c,'stroke-width':2,'stroke-dasharray':d});
+    el('text',{x:x(5.4)+28,y:ly,'font-size':11.5,style:'fill:var(--ink)'},t);
+  });
+})();
+
+// B: domain angles of the three MD replicates
+(function(){
+  const svg=document.getElementById('b-theta'); if(!svg)return; const el=mk(svg);
+  const L=56,R=460,T=16,B=260, X0=40,X1=95,Y0=100,Y1=175;
+  const x=v=>L+(v-X0)/(X1-X0)*(R-L), y=v=>B-(v-Y0)/(Y1-Y0)*(B-T);
+  el('rect',{x:x(X0),y:y(125.9),width:x(58.3)-x(X0),height:y(Y0)-y(125.9),fill:'var(--Btint)',stroke:'var(--B)','stroke-dasharray':'4 3'});
+  el('text',{x:x(X0)+6,y:y(125.9)+15,'font-size':11,style:'fill:var(--B)'},'closed box');
+  [40,50,60,70,80,90].forEach(v=>{el('line',{x1:x(v),x2:x(v),y1:T,y2:B,stroke:'var(--rule)','stroke-dasharray':'2 3'});el('text',{x:x(v),y:B+16,'text-anchor':'middle','font-size':11},v+'°');});
+  [100,125,150,175].forEach(v=>{el('line',{x1:L,x2:R,y1:y(v),y2:y(v),stroke:'var(--rule)','stroke-dasharray':'2 3'});el('text',{x:L-7,y:y(v)+4,'text-anchor':'end','font-size':11},v+'°');});
+  el('text',{x:(L+R)/2,y:B+34,'text-anchor':'middle','font-size':11,style:'fill:var(--ink3)'},'θNMP');
+  el('text',{x:16,y:(T+B)/2,'font-size':11,transform:`rotate(-90 16 ${(T+B)/2})`,'text-anchor':'middle',style:'fill:var(--ink3)'},'θLID');
+  const op=[0.85,0.6,0.4];
+  DATA.B.theta.forEach((tr,i)=>{
+    el('polyline',{points:tr.map(p=>x(p[0])+','+y(p[1])).join(' '),fill:'none',stroke:'var(--B)','stroke-width':1.1,opacity:op[i]});
+    const e=tr[tr.length-1]; tip(el('circle',{cx:x(e[0]),cy:y(e[1]),r:3,fill:'var(--B)',opacity:op[i]}),`replicate ${i}, end of 10 ns: θNMP ${e[0]}°, θLID ${e[1]}°`);
+  });
+  [[72.6,145.7,'open crystal (4AKE)','start'],[44.1,106.2,'closed crystal (1AKE)','start']].forEach(([a,b,t,anc])=>{
+    tip(el('path',{d:`M${x(a)} ${y(b)-6}l6 6l-6 6l-6-6z`,fill:'var(--ink)'}),t+`: θNMP ${a}°, θLID ${b}°`);
+    el('text',{x:x(a)+(a>60?-10:10),y:y(b)+(a>60?-8:4),'text-anchor':a>60?'end':'start','font-size':11,style:'fill:var(--ink)'},t);
   });
 })();
 </script>
