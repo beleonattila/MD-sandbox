@@ -72,8 +72,15 @@ Spearman rho with bootstrap 95 % CI; RMSE in kcal/mol; cost is median wall clock
   forward estimate is still drifting. The quoted sd underestimates the error. The
   overbinding is in the known direction for fixed-charge cationic CB7 guests, and the
   experiment's 50 mM sodium acetate (Na⁺ competes at the portals) is not modelled.
-  Next: double the electrostatics windows (5 → ~10) and add one at the boundary,
-  ~6–7 h per guest.
+  **Convergence check** (`configs/a_cb7_l3_abfe_g23_dense.yml`, 2026-10-18): same sampling,
+  electrostatics windows at 0.1 plus 0.95 (complex 30 states, solvent 27), 2.7 h on an
+  unshared GPU. −20.6 ± 0.6 vs −17.19. Neighbour overlap ≥ 0.14 everywhere, 3 (solvent)
+  and 5 (complex) round trips; solvent halves agree to 0.2 kT, complex halves differ by
+  1.7 kT because the first quarter is still relaxing (forward estimate 269.9 → 268.2 →
+  267.7 → 267.6 kT). The windows moved the result by 1.4 kcal/mol; the remaining
+  3.4 kcal/mol overbinding is not a sampling artefact of the schedule. Use this schedule
+  for the campaign; a longer complex leg (or discarding the first quarter) would tighten
+  the halves check.
 - **Caveats.** CB7 g3 (bis-trimethylammonium adamantane) sits at the portal in all L2
   replicates (COM 0.55–0.73 nm from the host centre); it is scored as simulated.
   g18 is simulated as the neutral acid. Propylbenzene's pose is placed in 186L, not
@@ -82,7 +89,7 @@ Spearman rho with bootstrap 95 % CI; RMSE in kcal/mol; cost is median wall clock
   Rows carry a `-dirty` code_version (uncommitted code).
 - **Storage:** `runs/a` 211 MB (HREX `.nc` deleted after `u_kln.npz` extraction);
   prepared systems 19 MB.
-- **Not done:** CB7 L3 for all 15 guests (~85–100 h with the denser schedule) and T4L L3
+- **Not done:** CB7 L3 for the other 14 guests (~2.7 h each with the denser schedule, ~38 h) and T4L L3
   (~10–20 h per ligand, `configs/a_t4l_l3_abfe.yml`) — both need approval; L4.
 
 ## Open questions

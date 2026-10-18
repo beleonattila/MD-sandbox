@@ -1,0 +1,15 @@
+# L3 convergence check, CB7 amantadine (Set 1, ID 23): the pilot (a_cb7_l3_abfe_g23.yml)
+# had neighbour overlap 0.014-0.04 through electrostatics and no replica round trips. Same
+# sampling, electrostatics windows halved to 0.1 (plus 0.95 at the restraint boundary):
+# complex 24 -> 30 states, solvent 21 -> 27. Estimate ~6 h on the 4050.
+#   RUN ~/.local/bin/micromamba run -r ~/micromamba -n mdbench-fe make run CONFIG=configs/a_cb7_l3_abfe_g23_dense.yml
+extends: a_cb7_l3_abfe_g23.yml
+abfe:
+  schedule:
+    complex:
+      lambda_restraints:     [0.0, 0.25, 0.5, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0]
+      lambda_electrostatics: [1.0, 1.0, 1.0, 1.0, 0.95, 0.9, 0.8, 0.7, 0.6, 0.5, 0.4, 0.3, 0.2, 0.1, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0]
+      lambda_sterics:        [1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 0.9, 0.8, 0.7, 0.6, 0.5, 0.45, 0.4, 0.35, 0.3, 0.25, 0.2, 0.15, 0.1, 0.05, 0.0]
+    solvent:
+      lambda_electrostatics: [1.0, 0.95, 0.9, 0.8, 0.7, 0.6, 0.5, 0.4, 0.3, 0.2, 0.1, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0]
+      lambda_sterics:        [1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 0.9, 0.8, 0.7, 0.6, 0.5, 0.45, 0.4, 0.35, 0.3, 0.25, 0.2, 0.15, 0.1, 0.05, 0.0]
