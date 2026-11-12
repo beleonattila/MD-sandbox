@@ -139,12 +139,17 @@ select { font: inherit; font-size: 13px; padding: 4px 8px; border-radius: 6px; b
       <button class="ghost" id="md-restart" type="button">Restart</button>
       <label class="speed" for="md-speed">Speed
         <select id="md-speed">
-          <option value="1">1 ps per frame</option>
-          <option value="3" selected>3 ps per frame</option>
-          <option value="10">10 ps per frame</option>
-          <option value="30">30 ps per frame</option>
+          <option value="0.25">0.25 ps per second</option>
+          <option value="0.5">0.5 ps per second</option>
+          <option value="1">1 ps per second</option>
+          <option value="3">3 ps per second</option>
+          <option value="10" selected>10 ps per second</option>
+          <option value="30">30 ps per second</option>
+          <option value="100">100 ps per second</option>
+          <option value="300">300 ps per second</option>
         </select>
       </label>
+      <label class="speed" for="md-smooth" title="Draws structures between saved frames (1 ps apart) by blending bond lengths, angles and dihedrals, so bonds keep their length and groups rotate on arcs. Display only: the in-between structures are not simulated."><input type="checkbox" id="md-smooth" checked> Smooth (interpolated)</label>
     </div>
     <div class="timeline">
       <canvas id="md-tl" aria-label="Basin occupied at each picosecond. Click or drag to jump."></canvas>
@@ -183,9 +188,9 @@ select { font: inherit; font-size: 13px; padding: 4px 8px; border-radius: 6px; b
           <button class="ghost" id="mt-restart" type="button">Restart</button>
           <label class="speed" for="mt-speed">Speed
             <select id="mt-speed">
-              <option value="5">5 hills per frame</option>
-              <option value="20" selected>20 hills per frame</option>
-              <option value="80">80 hills per frame</option>
+              <option value="150">150 hills per second</option>
+              <option value="600" selected>600 hills per second</option>
+              <option value="2400">2400 hills per second</option>
             </select>
           </label>
         </div>
@@ -317,11 +322,102 @@ select { font: inherit; font-size: 13px; padding: 4px 8px; border-radius: 6px; b
 
     const rot = () => { const cy = Math.cos(yaw), sy = Math.sin(yaw), cp = Math.cos(pitch), sp = Math.sin(pitch); return (x, y, z) => { const x1 = cy * x + sy * z, z1 = -sy * x + cy * z; return [x1, cp * y - sp * z1, sp * y + cp * z1]; }; };
 
+    // ---- in-between frames in internal coordinates (display only) ----
+    // Reference implementation and tests: src/mdbench/branch_c/ic_interp.py, tests/test_ic_interp.py.
+    // Each atom is placed from its bond length, bond angle and dihedral to three already-placed atoms
+    // (a spanning tree rooted at the alanine CA, with N and C fixing the root frame). Lengths and angles
+    // are blended between the two saved frames, dihedrals along the shorter arc, and the root frame's
+    // orientation by quaternion slerp, so bonds never shrink and methyl hydrogens swing on arcs.
+    // Atoms sharing the same three reference atoms (the H's of a CH3, an sp2 pair) are siblings: only the
+    // first sibling's dihedral is interpolated as a torsion, the others keep a blended offset from it, so
+    // a rotor turns as one rigid group instead of each H taking its own shorter arc (which collapsed H-C-H
+    // angles to ~15° when a methyl turned ~60° between frames).
+    const sub = (p, q) => [p[0] - q[0], p[1] - q[1], p[2] - q[2]], dot = (p, q) => p[0] * q[0] + p[1] * q[1] + p[2] * q[2];
+    const cross = (p, q) => [p[1] * q[2] - p[2] * q[1], p[2] * q[0] - p[0] * q[2], p[0] * q[1] - p[1] * q[0]];
+    const unit = (p) => { const l = Math.hypot(p[0], p[1], p[2]); return [p[0] / l, p[1] / l, p[2] / l]; };
+    const lerp = (a, b, u) => a + (b - a) * u, TAU = 2 * Math.PI;
+    const lerpAng = (a, b, u) => a + ((((b - a + Math.PI) % TAU) + TAU) % TAU - Math.PI) * u;
+    const atomIdx = (r, n) => md.atoms.findIndex(t => t.r === r && t.n === n);
+    const ZCA = atomIdx('ALA', 'CA'), ZN = atomIdx('ALA', 'N'), ZC = atomIdx('ALA', 'C');
+    const zmat = (() => {
+      if (ZCA < 0 || ZN < 0 || ZC < 0) return null;
+      const adj = Array.from({ length: A }, () => []);
+      for (const [i, j] of md.bonds) { adj[i].push(j); adj[j].push(i); }
+      const par = new Array(A).fill(-1), seen = new Array(A).fill(false), order = [ZCA];
+      seen[ZCA] = true;
+      for (let k = 0; k < order.length; k++) for (const b of adj[order[k]]) if (!seen[b]) { seen[b] = true; par[b] = order[k]; order.push(b); }
+      if (order.length !== A || par[ZN] !== ZCA || par[ZC] !== ZCA) return null; // disconnected or unexpected topology: fall back to linear
+      const refs = [], primary = new Map();
+      for (const j of order) {
+        if (j === ZCA || j === ZN || j === ZC) continue;
+        const a = par[j], b = a === ZCA ? ZN : par[a], c = a === ZCA ? ZC : b === ZCA ? (a === ZN ? ZC : ZN) : par[b];
+        const key = `${a},${b},${c}`;
+        if (!primary.has(key)) primary.set(key, refs.length);
+        refs.push([j, a, b, c, primary.get(key)]); // last entry: index of this atom's primary sibling (itself if first)
+      }
+      return refs;
+    })();
+    const pos = (fr, a) => { const o = (fr * A + a) * 3; return [xyz[o] / 100, xyz[o + 1] / 100, xyz[o + 2] / 100]; };
+    // local frame at C from A, B, C: columns bc, n × bc, n
+    const frame = (pA, pB, pC) => { const bc = unit(sub(pC, pB)), n = unit(cross(sub(pB, pA), bc)); return [bc, cross(n, bc), n]; };
+    function internals(fr) {
+      const X = (a) => pos(fr, a), o = X(ZCA), vn = sub(X(ZN), o), vc = sub(X(ZC), o);
+      const e1 = unit(vn), e2 = unit(sub(vc, e1.map(c => c * dot(vc, e1)))), e3 = cross(e1, e2);
+      const dn = Math.hypot(...vn), dc = Math.hypot(...vc), th = Math.acos(Math.max(-1, Math.min(1, dot(e1, vc) / dc)));
+      const ic = zmat.map(([j, a, b, c]) => {
+        const F = frame(X(c), X(b), X(a)), v = sub(X(j), X(a)), l = [dot(F[0], v), dot(F[1], v), dot(F[2], v)], r = Math.hypot(...l);
+        return [r, Math.acos(Math.max(-1, Math.min(1, -l[0] / r))), Math.atan2(l[2], l[1])];
+      });
+      return { o, q: quatOf(e1, e2, e3), dn, dc, th, ic };
+    }
+    // rotation matrix with columns e1, e2, e3 -> unit quaternion [w, x, y, z]
+    function quatOf(e1, e2, e3) {
+      const m00 = e1[0], m10 = e1[1], m20 = e1[2], m01 = e2[0], m11 = e2[1], m21 = e2[2], m02 = e3[0], m12 = e3[1], m22 = e3[2], t = m00 + m11 + m22;
+      if (t > 0) { const s = 2 * Math.sqrt(t + 1); return [s / 4, (m21 - m12) / s, (m02 - m20) / s, (m10 - m01) / s]; }
+      if (m00 >= m11 && m00 >= m22) { const s = 2 * Math.sqrt(1 + m00 - m11 - m22); return [(m21 - m12) / s, s / 4, (m01 + m10) / s, (m02 + m20) / s]; }
+      if (m11 >= m22) { const s = 2 * Math.sqrt(1 + m11 - m00 - m22); return [(m02 - m20) / s, (m01 + m10) / s, s / 4, (m12 + m21) / s]; }
+      const s = 2 * Math.sqrt(1 + m22 - m00 - m11); return [(m10 - m01) / s, (m02 + m20) / s, (m12 + m21) / s, s / 4];
+    }
+    function slerp(q0, q1, u) {
+      let c = dot4(q0, q1); if (c < 0) { q1 = q1.map(v => -v); c = -c; }
+      if (c > 0.9995) { const q = q0.map((v, i) => lerp(v, q1[i], u)), l = Math.hypot(...q); return q.map(v => v / l); }
+      const w = Math.acos(c), s0 = Math.sin((1 - u) * w) / Math.sin(w), s1 = Math.sin(u * w) / Math.sin(w);
+      return q0.map((v, i) => s0 * v + s1 * q1[i]);
+    }
+    const dot4 = (p, q) => p[0] * q[0] + p[1] * q[1] + p[2] * q[2] + p[3] * q[3];
+    let icCache = { f: -1 };
+    function interpolated(u) {
+      if (icCache.f !== f) icCache = { f, i0: internals(f), i1: internals(f + 1) };
+      const { i0, i1 } = icCache;
+      const L = new Array(A);
+      L[ZCA] = [0, 0, 0];
+      const dn = lerp(i0.dn, i1.dn, u), dc = lerp(i0.dc, i1.dc, u), th = lerp(i0.th, i1.th, u);
+      L[ZN] = [dn, 0, 0]; L[ZC] = [dc * Math.cos(th), dc * Math.sin(th), 0];
+      const ph = zmat.map((_, k) => lerpAng(i0.ic[k][2], i1.ic[k][2], u));
+      zmat.forEach(([j, a, b, c, s], k) => {
+        const [r0, t0, p0] = i0.ic[k], [r1, t1, p1] = i1.ic[k];
+        const r = lerp(r0, r1, u), t = lerp(t0, t1, u);
+        const p = s === k ? ph[k] : ph[s] + lerpAng(p0 - i0.ic[s][2], p1 - i1.ic[s][2], u);
+        const F = frame(L[c], L[b], L[a]), d2 = [-r * Math.cos(t), r * Math.sin(t) * Math.cos(p), r * Math.sin(t) * Math.sin(p)];
+        L[j] = [0, 1, 2].map(x => L[a][x] + F[0][x] * d2[0] + F[1][x] * d2[1] + F[2][x] * d2[2]);
+      });
+      const [w, x, y, z] = slerp(i0.q, i1.q, u), o = [0, 1, 2].map(k => lerp(i0.o[k], i1.o[k], u));
+      const M = [[1 - 2 * (y * y + z * z), 2 * (x * y - w * z), 2 * (x * z + w * y)], [2 * (x * y + w * z), 1 - 2 * (x * x + z * z), 2 * (y * z - w * x)], [2 * (x * z - w * y), 2 * (y * z + w * x), 1 - 2 * (x * x + y * y)]];
+      return L.map(l => M.map((row, k) => o[k] + dot(row, l)));
+    }
+
     function drawMol() {
       const cv = $('mol'), { w, h, d } = fit(cv), ctx = cv.getContext('2d');
       ctx.clearRect(0, 0, w, h);
       const R = rot(), P = [];
-      for (let a = 0; a < A; a++) { const o = (f * A + a) * 3; P.push(R(xyz[o] / 100, -xyz[o + 1] / 100, xyz[o + 2] / 100)); }
+      // between saved frames, optionally draw an internal-coordinate blend of frame f and f + 1 (display only)
+      const u = playing && f < N - 1 && $('md-smooth').checked ? acc : 0;
+      if (u && zmat) for (const p of interpolated(u)) P.push(R(p[0], -p[1], p[2]));
+      else for (let a = 0; a < A; a++) {
+        const o = (f * A + a) * 3, q = o + A * 3;
+        const x = u ? xyz[o] + (xyz[q] - xyz[o]) * u : xyz[o], y = u ? xyz[o + 1] + (xyz[q + 1] - xyz[o + 1]) * u : xyz[o + 1], z = u ? xyz[o + 2] + (xyz[q + 2] - xyz[o + 2]) * u : xyz[o + 2];
+        P.push(R(x / 100, -y / 100, z / 100));
+      }
       const scale = Math.min(w, h) / 11.5, cx = w / 2, cy = h / 2;
       const sx = (p) => cx + p[0] * scale, sy = (p) => cy + p[1] * scale;
       const items = [];
@@ -399,7 +495,7 @@ select { font: inherit; font-size: 13px; padding: 4px 8px; border-radius: 6px; b
     }
     const draw = () => { drawMol(); drawRama(); timeline($('md-tl'), lab, f, N); hud(); };
     const btn = $('md-play');
-    const setPlaying = (p) => { playing = p; btn.textContent = p ? 'Pause' : 'Play'; if (p) last = 0; };
+    const setPlaying = (p) => { playing = p; btn.textContent = p ? 'Pause' : 'Play'; last = 0; acc = 0; if (!p) drawMol(); };
     btn.addEventListener('click', () => { if (!playing && f >= N - 1) f = 0; setPlaying(!playing); });
     $('md-restart').addEventListener('click', () => { f = 0; draw(); });
     scrubber($('md-tl'), N, (i) => { f = i; draw(); });
@@ -407,20 +503,26 @@ select { font: inherit; font-size: 13px; padding: 4px 8px; border-radius: 6px; b
     // rotation
     const mol = $('mol'); let dragging = null;
     mol.addEventListener('pointerdown', (e) => { dragging = [e.clientX, e.clientY]; mol.setPointerCapture(e.pointerId); });
-    mol.addEventListener('pointermove', (e) => { if (!dragging) return; yaw += (e.clientX - dragging[0]) * 0.01; pitch += (e.clientY - dragging[1]) * 0.01; dragging = [e.clientX, e.clientY]; drawMol(); });
+    mol.addEventListener('pointermove', (e) => { if (!dragging) return; yaw += (e.clientX - dragging[0]) * 0.01; pitch -= (e.clientY - dragging[1]) * 0.01; dragging = [e.clientX, e.clientY]; drawMol(); });
     mol.addEventListener('pointerup', () => { dragging = null; });
     mol.addEventListener('keydown', (e) => {
       const k = { ArrowLeft: [-0.15, 0], ArrowRight: [0.15, 0], ArrowUp: [0, -0.15], ArrowDown: [0, 0.15] }[e.key];
       if (k) { yaw += k[0]; pitch += k[1]; drawMol(); e.preventDefault(); }
     });
 
-    let last = 0;
+    let last = 0, acc = 0;
     const tick = (ts) => {
-      if (playing && ts - last > 30) {
+      if (playing) {
+        // advance by wall-clock time so the speed is ps per second whatever the display rate
+        if (last) acc += Math.min(ts - last, 100) / 1000 * Number($('md-speed').value) / md.dt_ps;
         last = ts;
-        f = Math.min(N - 1, f + Number($('md-speed').value));
-        draw();
-        if (f >= N - 1) setPlaying(false);
+        const step = Math.floor(acc);
+        if (step) {
+          acc -= step;
+          f = Math.min(N - 1, f + step);
+          draw();
+          if (f >= N - 1) setPlaying(false);
+        } else if ($('md-smooth').checked) drawMol();
       }
       requestAnimationFrame(tick);
     };
@@ -519,9 +621,9 @@ select { font: inherit; font-size: 13px; padding: 4px 8px; border-radius: 6px; b
     }
     const draw = () => { drawFES(); drawHH(); const ci = cvIndexAt(n ? t[n - 1] : 0); timeline($('mt-tl'), cvLab, ci, cvLab.length); };
 
-    let playing = false, last = 0;
+    let playing = false, last = 0, acc = 0;
     const btn = $('mt-play');
-    const setPlaying = (p) => { playing = p; btn.textContent = p ? 'Pause' : 'Play'; };
+    const setPlaying = (p) => { playing = p; btn.textContent = p ? 'Pause' : 'Play'; last = 0; acc = 0; };
     btn.addEventListener('click', () => { if (!playing && n >= H) goTo(0); setPlaying(!playing); });
     $('mt-restart').addEventListener('click', () => { goTo(0); draw(); });
     scrubber($('mt-tl'), cvLab.length, (i) => {
@@ -529,7 +631,12 @@ select { font: inherit; font-size: 13px; padding: 4px 8px; border-radius: 6px; b
       goTo(k); draw();
     });
     const tick = (ts) => {
-      if (playing && ts - last > 30) { last = ts; goTo(Math.min(H, n + Number($('mt-speed').value))); draw(); if (n >= H) setPlaying(false); }
+      if (playing) {
+        if (last) acc += Math.min(ts - last, 100) / 1000 * Number($('mt-speed').value);
+        last = ts;
+        const step = Math.floor(acc);
+        if (step) { acc -= step; goTo(Math.min(H, n + step)); draw(); if (n >= H) setPlaying(false); }
+      }
       requestAnimationFrame(tick);
     };
     goTo(H);
