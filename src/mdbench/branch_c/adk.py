@@ -840,8 +840,8 @@ def trajectory_angles(top: str | Path, traj: str | Path) -> np.ndarray:
     return da.domain_angle_timeseries(mda.Universe(str(top), str(traj)))
 
 
-@register(branch="c", system="adk", level="L2", method="unbiased_md")
-@register(branch="c", system="adk", level="L2", method="unbiased_md_smoke")
+@register(branch="c", system="adk", level="L2", method="unbiased_md", pausable=True)
+@register(branch="c", system="adk", level="L2", method="unbiased_md_smoke", pausable=True)
 def adk_l2_unbiased(cfg: dict[str, Any], run_dir: Path) -> list[dict[str, Any]]:
     """Explicit-solvent unbiased MD from one endpoint; histogram of the domain angles.
 
@@ -971,7 +971,7 @@ def mbar_unbiased_weights(
     return w / w.sum(), mbar
 
 
-@register(branch="c", system="adk", level="L3", method="umbrella_theta_lid")
+@register(branch="c", system="adk", level="L3", method="umbrella_theta_lid", pausable=True)
 def adk_l3_umbrella(cfg: dict[str, Any], run_dir: Path) -> list[dict[str, Any]]:
     """Umbrella sampling along theta_LID (theta_NMP free), MBAR reweighting.
 
@@ -1004,9 +1004,14 @@ def adk_l3_umbrella(cfg: dict[str, Any], run_dir: Path) -> list[dict[str, Any]]:
                      box_vectors=box, extra_reporters=[last])  # fmt: skip
         gpu = res.gpu
         gc.collect()  # finalise the PLUMED object so COLVAR is complete
-        if p.get("chain_starts", True) and last.positions is not None:
-            pos, box = last.positions, last.box
-        col = read_colvar(wd / "COLVAR")
+        if p.get("chain_starts", True):
+            # `last` stays empty when this window was already complete (resumed with no
+            # steps left), so fall back to the final state run_md read from the checkpoint.
+            if last.positions is not None:
+                pos, box = last.positions, last.box
+            elif res.final_positions is not None:
+                pos, box = res.final_positions, res.final_box
+        col = read_colvar(wd / "COLVAR", dedupe_time=True)  # a paused window repeats one row
         keep = col["time"] >= float(an.get("discard_ps", 0.0))
         lid, nmp = col["theta_lid"][keep], col["theta_nmp"][keep]
         g = timeseries.statistical_inefficiency(lid) if len(lid) > 2 else 1.0

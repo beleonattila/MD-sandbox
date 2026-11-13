@@ -36,14 +36,23 @@ Key = tuple[str, str, str, str]
 _RUNNERS: dict[Key, RunFn] = {}
 _SCORERS: dict[str, ScoreFn] = {}
 _PLOTTERS: dict[str, Callable[..., Any]] = {}
+_PAUSABLE: set[Key] = set()
 
 
 def _key(branch: str, system: str, level: str, method: str) -> Key:
     return (str(branch).lower(), str(system), str(level).upper(), str(method))
 
 
-def register(branch: str, system: str, level: str, method: str) -> Callable[[RunFn], RunFn]:
-    """Decorator registering ``fn`` as the runner for (branch, system, level, method)."""
+def register(
+    branch: str, system: str, level: str, method: str, pausable: bool = False
+) -> Callable[[RunFn], RunFn]:
+    """Decorator registering ``fn`` as the runner for (branch, system, level, method).
+
+    ``pausable=True`` promises that the runner stops cleanly on ``mdbench.budget`` (it raises
+    ``RunPaused`` after writing a restart point) and that running the same config again
+    continues where it stopped. ``mdbench run --minutes`` and ``mdbench nightly`` only
+    apply a time limit to such runners.
+    """
 
     def deco(fn: RunFn) -> RunFn:
         key = _key(branch, system, level, method)
@@ -53,6 +62,8 @@ def register(branch: str, system: str, level: str, method: str) -> Callable[[Run
             if not same:
                 raise ValueError(f"duplicate registration for {key}: {existing} vs {fn}")
         _RUNNERS[key] = fn
+        if pausable:
+            _PAUSABLE.add(key)
         return fn
 
     return deco
@@ -109,6 +120,12 @@ def get_runner(branch: str, system: str, level: str, method: str) -> RunFn:
         raise KeyError(f"no runner registered for {key}; registered for branch: {known}") from None
 
 
+def is_pausable(branch: str, system: str, level: str, method: str) -> bool:
+    """Whether the runner registered for this key can stop and resume (see :func:`register`)."""
+    load_branch(branch)
+    return _key(branch, system, level, method) in _PAUSABLE
+
+
 def get_scorer(branch: str) -> ScoreFn | None:
     """Branch-specific scorer, or ``None`` to use the generic one."""
     load_branch(branch)
@@ -130,6 +147,7 @@ __all__ = [
     "get_plotter",
     "get_runner",
     "get_scorer",
+    "is_pausable",
     "load_branch",
     "register",
     "register_plotter",

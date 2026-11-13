@@ -32,6 +32,7 @@ from typing import Any
 import numpy as np
 import yaml
 
+from mdbench import budget
 from mdbench.branch_a.common import (
     KB_KCAL_MOL_K,
     KCAL_PER_KJ,
@@ -410,8 +411,8 @@ def l2_mmgbsa_ie(cfg: dict[str, Any], run_dir: Path) -> list[dict[str, Any]]:
 # --------------------------------------------------------------------------- L3
 
 
-@register(branch="a", system="cb7", level="L3", method="abfe_hrex_mbar")
-@register(branch="a", system="t4l", level="L3", method="abfe_hrex_mbar")
+@register(branch="a", system="cb7", level="L3", method="abfe_hrex_mbar", pausable=True)
+@register(branch="a", system="t4l", level="L3", method="abfe_hrex_mbar", pausable=True)
 def l3_abfe(cfg: dict[str, Any], run_dir: Path) -> list[dict[str, Any]]:
     """Absolute binding free energy per guest (complex and solvent legs, MBAR)."""
     from mdbench.engines import abfe
@@ -427,6 +428,8 @@ def l3_abfe(cfg: dict[str, Any], run_dir: Path) -> list[dict[str, Any]]:
             if done.exists():
                 legs[leg] = json.loads(done.read_text())
                 continue
+            if budget.stop_requested():  # do not start a leg (minutes of set-up) past the budget
+                raise budget.RunPaused(f"{gid}/{leg}: not started, time budget used")
             legs[leg] = abfe.run_leg(
                 leg=leg,
                 system_xml=prepared(cfg, gid, f"{leg}_system"),

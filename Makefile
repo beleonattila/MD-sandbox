@@ -12,13 +12,15 @@ CONFIG      ?=
 BRANCH      ?=
 N_ATOMS     ?=
 DAYS        ?= 0
+MINUTES     ?=
+QUEUE       ?= queue/nightly.yml
 
 export PYTHONPATH := $(CURDIR)/src$(if $(PYTHONPATH),:$(PYTHONPATH))
 
-.PHONY: help env test lint run score report clean-runs bench
+.PHONY: help env test lint run nightly score report clean-runs bench
 
 help:
-	@echo "targets: env test lint run CONFIG=... score BRANCH=... report clean-runs [DAYS=n] bench [N_ATOMS=n]"
+	@echo "targets: env test lint run CONFIG=... [MINUTES=n] nightly MINUTES=n score BRANCH=... report clean-runs [DAYS=n] bench [N_ATOMS=n]"
 
 # Creates $(ENV_NAME) (default mdbench-md) from its explicit lock file when present, else
 # from the YAML solve. `make env ENV_NAME=mdbench-fe` builds the L3 alchemy environment.
@@ -42,7 +44,13 @@ lint:
 
 run:
 	@test -n "$(CONFIG)" || { echo "usage: make run CONFIG=configs/<name>.yml"; exit 2; }
-	$(PYTHON) -m mdbench run $(CONFIG)
+	$(PYTHON) -m mdbench run $(CONFIG) $(if $(MINUTES),--minutes $(MINUTES))
+
+# MINUTES=n on `run` stops a pausable run at its next restart point after n minutes (exit 75);
+# run the same config again to continue. `nightly` works through QUEUE inside MINUTES.
+nightly:
+	@test -n "$(MINUTES)" || { echo "usage: make nightly MINUTES=<n> [QUEUE=queue/nightly.yml]"; exit 2; }
+	$(PYTHON) -m mdbench nightly --minutes $(MINUTES) --queue $(QUEUE)
 
 score:
 	@test -n "$(BRANCH)" || { echo "usage: make score BRANCH=<a|b|c|d>"; exit 2; }

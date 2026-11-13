@@ -12,6 +12,13 @@ Output, in the run directory:
 - ``final.pdb``      last frame of the selected subset
 - ``md_result.json`` wall clock, ns/day, platform, GPU name
 
+Pausing: when a time budget is active (``mdbench run --minutes``, see ``mdbench.budget``)
+and ``md.resume`` is true, production steps in small chunks. At a requested stop it saves
+``checkpoint.chk`` and raises :class:`mdbench.budget.RunPaused`; running the same config
+again continues from that step. Frames are written on fixed step multiples, so a stop
+between frames loses and duplicates nothing. Minimisation and equilibration are not
+interruptible (minutes); the checkpoint written right after them makes the work durable.
+
 PLUMED: pass ``plumed_script`` (text); it is added as an ``openmmplumed.PlumedForce`` and
 the simulation runs with the run directory as the working directory, so relative file
 names in the script (COLVAR, HILLS, ...) land next to the trajectory.
@@ -27,12 +34,14 @@ import shutil
 import subprocess
 import time
 from collections.abc import Iterator, Mapping, Sequence
-from dataclasses import asdict, dataclass, field
+from dataclasses import dataclass, field, fields
 from pathlib import Path
 from typing import Any
 
 import openmm
 from openmm import app, unit
+
+from mdbench import budget
 
 log = logging.getLogger(__name__)
 
@@ -64,9 +73,16 @@ class MDResult:
     topology: str | None
     log: str
     extra: dict[str, Any] = field(default_factory=dict)
+    session_wall_clock_s: float = 0.0
+    # In-memory only (not written to md_result.json): the last positions and box, so a caller
+    # chaining runs does not need an OpenMM reporter that is skipped when nothing was left to run.
+    final_positions: Any = field(default=None, repr=False, compare=False)
+    final_box: Any = field(default=None, repr=False, compare=False)
 
     def write(self, path: str | Path) -> None:
-        Path(path).write_text(json.dumps(asdict(self), indent=2))
+        skip = {"final_positions", "final_box"}
+        data = {f.name: getattr(self, f.name) for f in fields(self) if f.name not in skip}
+        Path(path).write_text(json.dumps(data, indent=2))
 
 
 def solute_indices(topology: app.Topology) -> list[int]:
@@ -248,8 +264,10 @@ def run_md(
     """Minimise, equilibrate and run production MD; write outputs into ``run_dir``.
 
     Resumes from ``run_dir/checkpoint.chk`` when ``md.resume`` is true. The returned
-    ``wall_clock_s`` covers context creation through the end of production on this
-    invocation; ``ns_per_day`` is from production steps only.
+    ``wall_clock_s`` is cumulative over every invocation on this run directory (context
+    creation through the end of production, summed over pauses and extensions);
+    ``session_wall_clock_s`` is this invocation alone. ``ns_per_day`` is from this
+    invocation's production steps only.
     """
     t0 = time.perf_counter()
     rd = Path(run_dir).resolve()
@@ -261,6 +279,12 @@ def run_md(
     n_steps = int(md["n_steps"])
     dt_fs = float(md["timestep_fs"])
     atoms = select_atoms(topology, md.get("xtc_selection", "solute"))
+    resume_enabled = bool(md.get("resume", True))
+    resuming = resume_enabled and chk.exists()
+    prior_wall = _prior_wall_clock(rd) if resuming else 0.0
+    if resuming and plumed_script:
+        # Without RESTART, PLUMED renames the existing COLVAR/HILLS aside and starts new ones.
+        plumed_script = "RESTART\n" + plumed_script
 
     with _maybe_chdir(rd, bool(plumed_script)):
         sim = build_simulation(topology, system, positions, md, plumed_script, box_vectors)
@@ -269,7 +293,6 @@ def run_md(
         log.info("platform=%s device=%s atoms=%d", platform, gpu, topology.getNumAtoms())
 
         resumed_from = 0
-        resuming = bool(md.get("resume", True)) and chk.exists()
         if resuming:
             sim.loadCheckpoint(str(chk))
             resumed_from = sim.currentStep
@@ -297,8 +320,12 @@ def run_md(
             sim.context.setTime(0.0)
             state = sim.context.getState(getPositions=True, enforcePeriodicBox=False)
             _write_subset_pdb(topology, state.getPositions(), atoms, top_pdb)
+            if resume_enabled:
+                # Make minimisation + equilibration durable: a stop or crash early in
+                # production resumes from step 0 instead of redoing them.
+                sim.saveCheckpoint(str(chk))
 
-        remaining = max(0, n_steps - sim.currentStep)
+        start_step = sim.currentStep
         append = resuming and log_path.exists()
         traj_int = int(md["traj_interval_steps"])
         log_int = int(md["log_interval_steps"])
@@ -330,26 +357,39 @@ def run_md(
             sim.reporters.append(app.CheckpointReporter(str(chk), chk_int))
         sim.reporters.extend(extra_reporters)
 
+        pausable = resume_enabled and budget.active()
+        chunk = _stop_granularity(traj_int if write_traj else 0, log_int, chk_int)
+        paused = False
         t_prod = time.perf_counter()
-        if remaining:
-            sim.step(remaining)
+        while sim.currentStep < n_steps:
+            if pausable and budget.stop_requested():
+                paused = True
+                break
+            nxt = min(n_steps, (sim.currentStep // chunk + 1) * chunk)
+            sim.step(nxt - sim.currentStep)
         prod_s = time.perf_counter() - t_prod
+        done_steps = sim.currentStep - start_step
         sim.saveCheckpoint(str(chk))
         state = sim.context.getState(getPositions=True)
-        _write_subset_pdb(topology, state.getPositions(), atoms, rd / "final.pdb")
+        final_positions = state.getPositions(asNumpy=True)
+        final_box = state.getPeriodicBoxVectors()
+        if not paused:
+            _write_subset_pdb(topology, state.getPositions(), atoms, rd / "final.pdb")
+        stopped_at = sim.currentStep
         # Destroy the context here, inside run_dir, so PLUMED finalises and flushes
         # COLVAR/HILLS before the caller reads them.
         del state, sim
         gc.collect()
 
-    wall = time.perf_counter() - t0
-    ns = remaining * dt_fs * 1e-6
+    session = time.perf_counter() - t0
+    wall = prior_wall + session
+    ns = done_steps * dt_fs * 1e-6
     result = MDResult(
         run_dir=str(rd),
         platform=platform,
         gpu=gpu,
         n_atoms=topology.getNumAtoms(),
-        n_steps=remaining,
+        n_steps=done_steps,
         timestep_fs=dt_fs,
         wall_clock_s=wall,
         production_wall_clock_s=prod_s,
@@ -358,9 +398,32 @@ def run_md(
         trajectory=str(xtc) if write_traj else None,
         topology=str(top_pdb) if top_pdb.exists() else None,
         log=str(log_path),
+        extra={"paused": True, "stopped_at_step": stopped_at, "n_steps_target": n_steps}
+        if paused
+        else {},
+        session_wall_clock_s=session,
+        final_positions=final_positions,
+        final_box=final_box,
     )
     result.write(rd / "md_result.json")
+    if paused:
+        log.info("paused at step %d of %d; rerun the same config to continue", stopped_at, n_steps)
+        raise budget.RunPaused(f"{rd}: paused at step {stopped_at}/{n_steps}")
     return result
+
+
+def _prior_wall_clock(rd: Path) -> float:
+    """Cumulative wall clock recorded by earlier invocations on this run directory."""
+    try:
+        return float(json.loads((rd / "md_result.json").read_text()).get("wall_clock_s", 0.0))
+    except (OSError, ValueError):
+        return 0.0
+
+
+def _stop_granularity(traj_int: int, log_int: int, chk_int: int, cap: int = 25000) -> int:
+    """Steps between stop checks: the finest output interval, at most ``cap`` (~50 ps)."""
+    positive = [v for v in (traj_int, log_int, chk_int) if v > 0]
+    return max(1, min([cap, *positive]))
 
 
 __all__ = [

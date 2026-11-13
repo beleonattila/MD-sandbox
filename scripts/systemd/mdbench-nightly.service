@@ -1,0 +1,20 @@
+# User service: one night's session of `mdbench nightly`.
+#   cp scripts/systemd/mdbench-nightly.{service,timer} ~/.config/systemd/user/
+#   systemctl --user daemon-reload && systemctl --user enable --now mdbench-nightly.timer
+# Edit WorkingDirectory and the minutes (480 = 23:00 to 07:00) to taste. The queue is
+# queue/nightly.yml; with no such file the session exits at once.
+[Unit]
+Description=mdbench nightly queue (pausable runs inside a time budget)
+
+[Service]
+Type=simple
+WorkingDirectory=%h/Projects/MD-sandbox
+Environment=PYTHONPATH=%h/Projects/MD-sandbox/src
+# Keep the laptop awake while a session runs (lid-close and idle suspend are inhibited).
+ExecStart=/usr/bin/systemd-inhibit --what=sleep:idle --who=mdbench --why="nightly MD session" \
+    %h/micromamba/envs/mdbench-md/bin/python -m mdbench nightly --minutes 480 --grace-minutes 0
+# `systemctl --user stop` sends SIGTERM; the run pauses at its next restart point
+# (seconds for MD, up to a few minutes inside an ABFE iteration batch) and exits cleanly.
+TimeoutStopSec=600
+KillMode=mixed
+Nice=10

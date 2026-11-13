@@ -19,6 +19,44 @@ $MM -n mdbench-md make lint
 `mdbench-md` runs L0–L2 and branches B and C. `mdbench-fe` runs only the L3 ABFE configs.
 For ad-hoc Python outside `make`, set `PYTHONPATH=src`.
 
+## Splitting a run across nights
+
+Long runs can run in time slices and continue where they stopped, so the laptop is free by
+day. Added 2026-11-13; not yet used for any committed result.
+
+```bash
+# One config, stop at the next restart point after N minutes (exit code 75 = paused)
+$MM -n mdbench-md make run CONFIG=configs/c_adk_l2_unbiased.yml MINUTES=480
+# Run the same line again the next night: it continues from the checkpoint.
+
+# A queue: edit queue/nightly.yml (see queue/nightly.example.yml), then
+$MM -n mdbench-md make nightly MINUTES=480          # or: python -m mdbench nightly --minutes 480
+python -m mdbench nightly --minutes 480 --dry-run   # show state and time spent per entry
+```
+
+- **Which runs pause:** AdK L2 unbiased (`c_adk_l2_unbiased*`), AdK L3 umbrella, and the
+  branch A L3 ABFE configs (CB7 and T4L). Anything else ignores `--minutes` and runs to the
+  end; `nightly` skips such entries. AdK L3 metadynamics cannot pause (`resume: false`).
+- **Stopping early:** Ctrl-C or SIGTERM pauses cleanly too (a second Ctrl-C aborts). MD
+  stops within ~50 ps of simulated time; ABFE within 5 iterations. Minimisation,
+  equilibration and ABFE set-up (minutes, T4L up to ~40 min) cannot be interrupted, so
+  `nightly` will not start a run with fewer than `--min-slice-minutes` (10) left.
+- **ABFE restarts at checkpoints.** openmmtools resumes from the last checkpoint iteration
+  (`abfe.checkpoint_interval`, 100 for CB7 and T4L), so a stop between checkpoints redoes the
+  partial block (up to ~40 min for T4L at 24 s per iteration). `--grace-minutes N` lets a
+  session overrun its budget by up to N minutes to reach the next checkpoint when that is
+  closer. A smaller `checkpoint_interval` in the T4L config would cut the loss; it changes
+  `config_hash`, so it has to be decided before any T4L row exists.
+- **Bookkeeping:** each run directory gets `status.json` (state, sessions, cumulative
+  seconds). `wall_clock_s` in the rows is the sum over all nights, so ladder cost plots stay
+  honest. Finished means the config's rows are in `results/`.
+- **Scheduling:** `scripts/systemd/mdbench-nightly.{service,timer}` start a 480-minute session
+  at 23:00 and inhibit suspend while it runs. They are not installed; see the header of the
+  service file. The laptop must be on mains power and awake at that time.
+- **Launch the env's own Python** (`~/micromamba/envs/<env>/bin/python`) when you need to
+  signal a run from outside: `micromamba run` exits on SIGTERM and takes the child with it.
+  `nightly` does this itself.
+
 ## Branch A — binding affinity (`results/a.parquet`, 90 rows)
 
 ```bash

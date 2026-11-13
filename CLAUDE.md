@@ -48,7 +48,8 @@ micromamba activate mdbench-ml    # L4 only: torch, mace-torch, openmm-ml, xtb  
 ```bash
 make env            # solve and create the environments from env/*.yml
 make test           # pytest: energy conservation, schema, round-trips
-make run CONFIG=configs/<name>.yml
+make run CONFIG=configs/<name>.yml [MINUTES=n]   # MINUTES: pause after n min, rerun to continue
+make nightly MINUTES=n   # work through queue/nightly.yml inside n minutes (docs/RUNBOOK.md)
 make score BRANCH=<a|b|c|d>
 make report         # ladder plots from results/*.parquet
 make clean-runs     # delete trajectories, keep results/

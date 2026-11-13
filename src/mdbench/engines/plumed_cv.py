@@ -157,10 +157,12 @@ def metad_script(
     return "\n".join(lines) + "\n"
 
 
-def read_colvar(path: str | Path) -> dict[str, np.ndarray]:
+def read_colvar(path: str | Path, dedupe_time: bool = False) -> dict[str, np.ndarray]:
     """Parse a PLUMED COLVAR file (``#! FIELDS`` header) into column arrays.
 
-    Repeated headers (restarts) are tolerated as long as the fields do not change.
+    Repeated headers (restarts) are tolerated as long as the fields do not change. PLUMED
+    prints the restart step again, so a resumed run has one repeated ``time``; with
+    ``dedupe_time`` the later of two consecutive equal-time rows is the one kept.
     """
     fields: list[str] | None = None
     rows: list[list[float]] = []
@@ -177,6 +179,9 @@ def read_colvar(path: str | Path) -> dict[str, np.ndarray]:
     if fields is None:
         raise ValueError(f"{path}: no '#! FIELDS' header")
     arr = np.asarray(rows, dtype=float).reshape(-1, len(fields))
+    if dedupe_time and "time" in fields and len(arr) > 1:
+        t = arr[:, fields.index("time")]
+        arr = arr[np.r_[t[1:] != t[:-1], True]]
     return {f: arr[:, i] for i, f in enumerate(fields)}
 
 

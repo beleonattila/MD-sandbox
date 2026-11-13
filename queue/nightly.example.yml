@@ -1,0 +1,12 @@
+# Queue for `python -m mdbench nightly --minutes <N>`. Copy to queue/nightly.yml.
+#
+# Entries run in order; finished ones (rows already in results/) are skipped, so the same file
+# works every night. Only runs that can pause are started (adk L2 unbiased, adk L3 umbrella,
+# a-branch L3 ABFE). Listing a run here does not approve it: anything estimated over 6 h
+# still needs the user's go-ahead (CLAUDE.md rule 6).
+default_env: mdbench-md
+runs:
+  # - configs/c_adk_l2_unbiased.yml
+  # - configs/c_adk_l2_unbiased_r1.yml
+  # - config: configs/a_t4l_l3_abfe_benzene.yml
+  #   env: mdbench-fe

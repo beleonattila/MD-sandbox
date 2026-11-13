@@ -46,6 +46,8 @@ from typing import Any
 
 import numpy as np
 
+from mdbench import budget
+
 # pymbar's JAX backend has CUDA in mdbench-fe and preallocates 75% of the card the first
 # time MBAR runs, then holds it: after one leg's analysis only ~1.4 GB of the 6 GB is left
 # for the next leg's contexts, which a 35k-atom T4L complex overruns. MBAR on these
@@ -124,16 +126,31 @@ def _heavy(system: Any, atoms: Sequence[int]) -> list[int]:
 
 
 def _restraint_state_class() -> Any:
-    from openmmtools.states import GlobalParameterState
+    """The ``RestraintState`` class (built on first use; openmmtools is imported lazily).
 
-    class RestraintState(GlobalParameterState):
-        """Controls ``lambda_restraints`` of the host-guest centre-of-mass restraint."""
+    It is published as the module attribute ``mdbench.engines.abfe.RestraintState`` (see
+    :func:`__getattr__`). openmmtools pickles thermodynamic states into the ``.nc`` file by
+    class path, so the class must be importable by name for a paused run to be reloaded.
+    """
+    if "RestraintState" not in globals():
+        from openmmtools.states import GlobalParameterState
 
-        lambda_restraints = GlobalParameterState.GlobalParameter(
-            "lambda_restraints", standard_value=1.0
-        )
+        class RestraintState(GlobalParameterState):
+            """Controls ``lambda_restraints`` of the host-guest centre-of-mass restraint."""
 
-    return RestraintState
+            lambda_restraints = GlobalParameterState.GlobalParameter(
+                "lambda_restraints", standard_value=1.0
+            )
+
+        RestraintState.__qualname__ = "RestraintState"
+        globals()["RestraintState"] = RestraintState
+    return globals()["RestraintState"]
+
+
+def __getattr__(name: str) -> Any:
+    if name == "RestraintState":
+        return _restraint_state_class()
+    raise AttributeError(f"module {__name__!r} has no attribute {name!r}")
 
 
 def build_states(
@@ -354,6 +371,39 @@ def analyse(nc: Path) -> dict[str, Any]:
     }
 
 
+def _read_prior_seconds(path: Path) -> float:
+    try:
+        return float(json.loads(path.read_text()).get("seconds", 0.0))
+    except (OSError, ValueError):
+        return 0.0
+
+
+def _run_iterations(sampler: Any, n_iter: int, checkpoint_interval: int, step: int = 5) -> bool:
+    """Run the sampler to ``n_iter`` iterations; returns True if a budget stop paused it.
+
+    Resuming an openmmtools multistate run restarts from the last *checkpoint* iteration
+    (every ``checkpoint_interval`` iterations), so iterations past it are redone. A stop is
+    therefore taken at a checkpoint boundary when that is reachable within the grace period
+    (``mdbench run --grace-minutes``) and otherwise immediately, losing the partial block.
+    """
+    ci = max(1, int(checkpoint_interval))
+    t_start = time.perf_counter()
+    it_start = int(sampler.iteration)
+    while sampler.iteration < n_iter:
+        if budget.stop_requested():
+            it = int(sampler.iteration)
+            to_boundary = (-it) % ci
+            done = it - it_start
+            per_it = (time.perf_counter() - t_start) / done if done > 0 else float("inf")
+            if to_boundary == 0 or per_it * to_boundary > budget.grace_left():
+                return True
+        k = min(step, n_iter - int(sampler.iteration))
+        if budget.stop_requested():  # heading for a boundary: never overshoot it
+            k = min(k, (-int(sampler.iteration)) % ci or k)
+        sampler.run(n_iterations=k)
+    return False
+
+
 def run_leg(
     leg: str,
     system_xml: Path,
@@ -396,12 +446,17 @@ def run_leg(
         n_steps=int(cfg["steps_per_iteration"]),
         reassign_velocities=bool(cfg.get("reassign_velocities", True)),
     )
+    ready = out / "sampling_ready.json"  # written once minimise + equilibrate are done
+    time_file = out / "sampling_time.json"  # cumulative sampling seconds over earlier sessions
+    if nc.exists() and not ready.exists():
+        nc.unlink()  # stopped before the starting state was prepared: start the leg over
+    prior_s = _read_prior_seconds(time_file) if nc.exists() else 0.0
     if nc.exists():
         reporter = multistate.MultiStateReporter(str(nc), open_mode="a")
         sampler = multistate.ReplicaExchangeSampler.from_storage(reporter)
         sampler.energy_context_cache = _context_cache(md, capacity=1)
         sampler.sampler_context_cache = _context_cache(md)
-        sampler.extend(max(0, n_iter - sampler.iteration))
+        sampler.number_of_iterations = max(int(sampler.number_of_iterations), n_iter)
     else:
         sampler = multistate.ReplicaExchangeSampler(
             mcmc_moves=move,
@@ -420,12 +475,21 @@ def run_leg(
         sampler.create(therm_states, sampler_state, reporter)
         sampler.minimize(max_iterations=int(cfg.get("minimize_max_iterations", 1000)))
         sampler.equilibrate(int(cfg.get("equilibration_iterations", 0)))
-        sampler.run()
+        ready.write_text("{}")
+    paused = _run_iterations(sampler, n_iter, int(cfg.get("checkpoint_interval", 100)))
+    if paused:
+        stopped_at = int(sampler.iteration)
+        reporter.close()
+        for c in (sampler.energy_context_cache, sampler.sampler_context_cache):
+            c.empty()
+        del sampler
+        time_file.write_text(json.dumps({"seconds": prior_s + time.perf_counter() - t0}))
+        raise budget.RunPaused(f"{leg}: paused at iteration {stopped_at}/{n_iter}")
     reporter.close()
     for c in (sampler.energy_context_cache, sampler.sampler_context_cache):
         c.empty()  # free the GPU contexts before the next leg in this process
     del sampler
-    sample_wall = time.perf_counter() - t0
+    sample_wall = prior_s + time.perf_counter() - t0
 
     t1 = time.perf_counter()
     res = analyse(nc)
@@ -438,7 +502,7 @@ def run_leg(
         info=info,
         sampling_wall_clock_s=sample_wall,
         analysis_wall_clock_s=time.perf_counter() - t1,
-        wall_clock_s=time.perf_counter() - t0,
+        wall_clock_s=sample_wall + time.perf_counter() - t1,
         simulated_ns_total=n_iter * int(cfg["steps_per_iteration"]) * float(md["timestep_fs"])
         * 1e-6 * info["n_states"],
         gpu=_nvidia_smi_name(0) or "unknown",

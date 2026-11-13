@@ -19,6 +19,9 @@ None of the open questions may be acted on until the user answers it.
 | 2026-10-18 | A | MM/GBSA entropy variant `mmgbsa_obc2_ie` uses the second-order cumulant, chosen before scoring. The exponential form is recorded too. | Fixing the choice before scoring avoids estimator shopping. Result: CB7 ρ goes from 0.28 to 0.50, but only through set separation, and the fluctuations are beyond the reliable range. T4L is unchanged. |
 | 2026-10-18 | A | The CB7 and T4L L3 campaigns are not started. | Both exceed 6 h, and the user paused to research. |
 
+| 2026-11-13 | all | Long runs pause and resume: `mdbench run --minutes N`, `mdbench nightly`, `status.json` per run, cumulative `wall_clock_s`. | The user runs simulations overnight and uses the laptop by day. Only runners marked `pausable` take a time limit. |
+| 2026-11-13 | A | ABFE resume was broken: `RestraintState` was a function-local class, so openmmtools could not unpickle a stored complex leg. It is now a module attribute (`engines/abfe.py`). | A paused complex leg could not be reloaded. No committed result is affected: those legs ran straight through. |
+
 Branch B and C decisions are recorded in their intent files and commit messages
 (24edc79, 4f52958, 756bbe0).
 
